@@ -29,9 +29,9 @@ def recursive_subcategories(field, parent, accumulated, level):
 
 
 # Parameters
-field = 'Mathematics'
+field = 'Neuroscience'
 entryName = 'Subcategories for ' + field
-levels = 4  # 5 takes way too long to answer
+levels = 2  # 5 takes way too long to answer
 
 subcategories = recursive_subcategories(field, entryName, dict(), levels)
 pp_json(subcategories)
