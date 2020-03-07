@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pip freeze > dependencies
+pip freeze > requirements.txt
