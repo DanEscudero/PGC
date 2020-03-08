@@ -1,4 +1,4 @@
-from util import format_field, pp_json, clear_category_name, list_subcategories
+from util import format_field, pp_json, list_subcategories
 
 
 # Returns subcategories as dictionary.
