@@ -1,9 +1,10 @@
 import sys
-from Tree import Node
+import os.path
+from Node import Node
 from util import list_subcategories
 
 # Defaults
-DEFAULT_QUERY_LEVEL = 1
+DEFAULT_QUERY_LEVEL = 3
 DEFAULT_QUERY_PARAMETER = 'Mathematics'
 
 
@@ -11,7 +12,7 @@ def expandNode(node):
     subcategories = list_subcategories(node.value)
 
     for subcategory in subcategories:
-        node.addChild(Node(subcategory))
+        node.addChild(Node(subcategory, node))
 
     return node
 
@@ -21,6 +22,15 @@ def buildTree(node, level):
     if (level > 1):
         for child in node.children:
             buildTree(child, level-1)
+
+
+def getFilePath(state):
+    (queryParameter, queryLevel) = state
+    return '../out/' + queryParameter + '_' + str(queryLevel)
+
+
+def shouldBuildTree(state):
+    return not os.path.isfile(getFilePath(state))
 
 
 # Read parameters from CLI
@@ -35,11 +45,18 @@ else:
     queryLevel = DEFAULT_QUERY_LEVEL
     queryParameter = DEFAULT_QUERY_PARAMETER
 
-# t = Node(queryParameter)
-# buildTree(t, queryLevel)
+state = (queryParameter, queryLevel)
+filepath = getFilePath(state)
 
-# x = t.findNode('asdasd')
-# print(x)
+if (shouldBuildTree(state)):
+    t = Node(queryParameter, None)
+    buildTree(t, queryLevel)
+    fp = open(filepath, 'w')
+    t.dumpToFile(fp)
+else:
+    t = Node.fromFile(filepath)
 
-t = Node.fromFile('../out/dump')
+print('ok!')
 print(t)
+print(t.height)
+print(t.recursiveCount)

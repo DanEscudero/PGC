@@ -2,12 +2,19 @@ import functools
 
 
 class Node(object):
-    def __init__(self, value):
+    def __init__(self, value, parent):
         self.value = value
+        self.parent = parent
         self.children = []
 
     def __str__(self):
+        if (self.parent == None):
+            parent = ''
+        else:
+            parent = self.parent.value
+
         s = 'Node: ' + self.value + '\n'
+        s = 'Parent: ' + parent + '\n'
         s += 'Children: ' + \
             (', ').join(map(lambda x: x.value, self.children)) + '\n'
         return s
@@ -45,25 +52,36 @@ class Node(object):
         self.children.append(obj)
         return obj
 
-    # TODO: reduce n^n complexity is necessary?
+    # TODO: reduce n*log(n) complexity is necessary?
     @staticmethod
     def fromFile(filepath):
         with open(filepath) as f:
-            lines = list(map(lambda x: x[:-1], f.readlines()))
+            lines = list(map(lambda x: x[:-1], f.readlines()))  # remove '\n'
+            f.close()
 
-        [name, parent] = lines[0].split(',')
+        [name, parent] = lines[0].split(' $sep$ ')
         if (parent == ''):
-            t = Node(name)
+            t = Node(name, None)
 
-        t = Node(name)
         for line in lines[1:]:
-            [name, parentValue] = line.split(',')
+            [name, parentValue] = line.split(' $sep$ ')
             parent = t.findNode(parentValue)
 
             if (parent == None):
                 print('invalid tree')
                 exit(-1)
 
-            parent.addChild(Node(name))
+            parent.addChild(Node(name, parent))
 
         return t
+
+    def dumpToFile(self, fp):
+        if (self.parent == None):
+            parent = ''
+        else:
+            parent = self.parent.value
+
+        fp.write(self.value + ' $sep$ ' + parent + '\n')
+
+        for child in self.children:
+            child.dumpToFile(fp)
