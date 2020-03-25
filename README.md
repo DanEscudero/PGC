@@ -1,11 +1,23 @@
 # PGC
 
-source ENV/bin/activate
-./helpers/install.sh
+Para rodar:
 
-...
+    python3 treebuilder.py [Topico] [Nivel]
 
-./helpers/freeze.sh
+Onde **Topico** é o nó da raíz da árvore, e **Nivel** é a altura máxima da árvore. Note que a árvore pode ser menor do que o nível especificado, dependendo do tópico escolhido, mas nunca será maior.
 
-questao 1: computer science tem q entrar em subfields; mathematics tem que entrar em fields
-questao 2: API da wikipedia so é disponibilizada em ingles
+A árvore construída será codificada para uma forma textual em `/out/Topico_Nivel`, para futura reconstrução mais rápida.
+
+---
+
+Para desenvolver:
+
+    source ENV/bin/activate
+
+    ./helpers/install.sh
+
+    ...
+
+    ./helpers/freeze.sh
+
+---
