@@ -20,16 +20,14 @@ def clear_category_name(name):
     return name.split(':')[1]
 
 
-# TODO: think about piping fields, in order to save request.
-# https://www.mediawiki.org/wiki/API:Etiquette#Request_limit
-# Could speed execution up to 10 times (?)
 def query_subcategories(field):
     params = {
         "action": "query",
         "cmtitle": "Category:" + format_field(field),
         "cmtype": "subcat",
         "list": "categorymembers",
-        "format": "json"
+        "format": "json",
+        "cmlimit": "max"
     }
 
     session = requests.Session()
@@ -41,3 +39,22 @@ def list_subcategories(field):
 
     return list(
         map(lambda x: clear_category_name(x['title']),  raw_info['query']['categorymembers']))
+
+
+def query_supercategories(field):
+    params = {
+        "action": "query",
+        "generator": "categories",
+        "titles": field,
+        "prop": "info",
+        "format": "json",
+    }
+
+    pp_json(params)
+
+    session = requests.Session()
+    return session.get(url='https://en.wikipedia.org/w/api.php', params=params)
+
+
+def list_supercategories(field):
+    return query_supercategories(field).json()

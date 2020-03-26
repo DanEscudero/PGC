@@ -38,28 +38,29 @@ def search(field, parent, level):
     return (accumulated)
 
 
-# Parameters
-# field = 'Neuroscience'
-# entryName = 'Subcategories for ' + field
-# levels = 2  # 5 takes way too long to answer
-
-# queries = 0
-# state = (dict())
-# (subcategories) = search(field, entryName, state, levels)
-
-# print('Number of queries:', queries)
-# pp_json(subcategories)
-
-params = {
+# supercategories
+super = {
     "action": "query",
-    "cmtitles": "Category:Mathematics|Category:Neuroscience",
+    "generator": "categories",
+    "titles": "Mathematics",
+    "prop": "info",
+    "cllimit": "max",
+    "format": "json",
+}
+
+# Subcategories
+sub = {
+    "action": "query",
+    "cmtitle": "Category:Mathematics",
     "cmtype": "subcat",
     "list": "categorymembers",
-    "format": "json"
+    "format": "json",
+    "cmlimit": "max"
 }
 
 session = requests.Session()
 result = session.get(
-    url='https://en.wikipedia.org/w/api.php', params=params).json()
+    # url='https://en.wikipedia.org/w/api.php', params=sub).json()
+    url='https://en.wikipedia.org/w/api.php', params=super).json()
 
 pp_json(result)
