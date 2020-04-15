@@ -51,16 +51,18 @@ super = {
 # Subcategories
 sub = {
     "action": "query",
-    "cmtitle": "Category:Mathematics",
-    "cmtype": "subcat",
-    "list": "categorymembers",
+    "gcmtitle": "Category:Mathematics",
+    "gcmtype": "subcat",
+    "generator": "categorymembers",
     "format": "json",
-    "cmlimit": "max"
+    "alprop": "title",
+    "gcmlimit": "max",
+    "list": "alllinks",
+    "allimit": "max",
 }
 
 session = requests.Session()
 result = session.get(
-    # url='https://en.wikipedia.org/w/api.php', params=sub).json()
-    url='https://en.wikipedia.org/w/api.php', params=super).json()
+    url='https://en.wikipedia.org/w/api.php', params=sub).json()
 
 pp_json(result)

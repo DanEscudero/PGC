@@ -14,7 +14,7 @@ class Node(object):
             parent = self.parent.value
 
         s = 'Node: ' + self.value + '\n'
-        s = 'Parent: ' + parent + '\n'
+        s += 'Parent: ' + parent + '\n'
         s += 'Children: ' + \
             (', ').join(map(lambda x: x.value, self.children)) + '\n'
         return s
@@ -47,6 +47,18 @@ class Node(object):
             maxHeight = max(maxHeight, child.height)
 
         return 1 + maxHeight
+
+    def getMaxChildren(self):
+        return -1
+
+    def getAvgChildren(self):
+        return -1
+
+    def getMinChildren(self):
+        return -1
+
+    def getChildrenPerLevel(self):
+        return -1
 
     def addChild(self, obj):
         self.children.append(obj)

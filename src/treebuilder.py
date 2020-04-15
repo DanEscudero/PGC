@@ -6,6 +6,7 @@ from util import list_subcategories
 # Defaults
 DEFAULT_QUERY_LEVEL = 3
 DEFAULT_QUERY_PARAMETER = 'Mathematics'
+DEFAULT_QUERY_PARAMETER = 'max'
 
 
 def expandNode(node):
@@ -18,6 +19,7 @@ def expandNode(node):
 
 
 def buildTree(node, level):
+    print('level>', level)
     expandNode(node)
     if (level > 1):
         for child in node.children:
@@ -33,30 +35,37 @@ def shouldBuildTree(state):
     return not os.path.isfile(getFilePath(state))
 
 
-# Read parameters from CLI
-argv = sys.argv[1:]
-argc = len(argv)
+def main():
+    print("hello world!")
 
-if argc == 2:
-    queryLevel = int(argv[1])
-    queryParameter = argv[0]
-else:
-    # TODO: throw error and explain required input
-    queryLevel = DEFAULT_QUERY_LEVEL
-    queryParameter = DEFAULT_QUERY_PARAMETER
+    # Read parameters from CLI
+    argv = sys.argv[1:]
+    argc = len(argv)
 
-state = (queryParameter, queryLevel)
-filepath = getFilePath(state)
+    if argc == 3:
+        queryParameter = argv[0]
+        queryLevel = int(argv[1])
+        if (argv[2].isdigit()):
+            queryCMLimit = int(argv[2])
+        elif (argv[2].lower() == 'max'):
+            queryCMLimit = 'max'
+        else:
+            raise Exception(
+                'Invalid max value!. Please use: [0-9]+|\'max\' (limited to 500)')
+    else:
+        raise Exception('Invalid parameters!')
 
-if (shouldBuildTree(state)):
-    t = Node(queryParameter, None)
-    buildTree(t, queryLevel)
-    fp = open(filepath, 'w')
-    t.dumpToFile(fp)
-else:
-    t = Node.fromFile(filepath)
+    state = (queryParameter, queryLevel)
+    filepath = getFilePath(state)
 
-print('ok!')
-print(t)
-print(t.height)
-print(t.recursiveCount)
+    if (shouldBuildTree(state)):
+        t = Node(queryParameter, None)
+        buildTree(t, queryLevel)
+        fp = open(filepath, 'w')
+        t.dumpToFile(fp)
+    else:
+        t = Node.fromFile(filepath)
+
+
+if __name__ == "__main__":
+    main()

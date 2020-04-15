@@ -17,7 +17,11 @@ def format_field(field):
 
 # Converts 'Category:X' to X
 def clear_category_name(name):
-    return name.split(':')[1]
+    x = name.split(':')
+    if (len(x) > 1):
+        return x[1]
+    else:
+        return x[0]
 
 
 def query_subcategories(field):
@@ -39,22 +43,3 @@ def list_subcategories(field):
 
     return list(
         map(lambda x: clear_category_name(x['title']),  raw_info['query']['categorymembers']))
-
-
-def query_supercategories(field):
-    params = {
-        "action": "query",
-        "generator": "categories",
-        "titles": field,
-        "prop": "info",
-        "format": "json",
-    }
-
-    pp_json(params)
-
-    session = requests.Session()
-    return session.get(url='https://en.wikipedia.org/w/api.php', params=params)
-
-
-def list_supercategories(field):
-    return query_supercategories(field).json()
