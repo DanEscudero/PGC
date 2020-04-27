@@ -24,22 +24,22 @@ def clear_category_name(name):
         return x[0]
 
 
-def query_subcategories(field):
+def query_subcategories(field, max):
     params = {
         "action": "query",
         "cmtitle": "Category:" + format_field(field),
         "cmtype": "subcat",
         "list": "categorymembers",
         "format": "json",
-        "cmlimit": "max"
+        "cmlimit": max
     }
 
     session = requests.Session()
     return session.get(url='https://en.wikipedia.org/w/api.php', params=params)
 
 
-def list_subcategories(field):
-    raw_info = query_subcategories(field).json()
+def list_subcategories(field, max):
+    raw_info = query_subcategories(field, max).json()
 
     return list(
         map(lambda x: clear_category_name(x['title']),  raw_info['query']['categorymembers']))

@@ -7,28 +7,24 @@ from util import list_subcategories
 DEFAULT_QUERY_LEVEL = 3
 DEFAULT_QUERY_PARAMETER = 'Mathematics'
 DEFAULT_QUERY_PARAMETER = 'max'
+seq = 0
 
 
-def expandNode(node):
-    subcategories = list_subcategories(node.value)
-
+def buildTree(node, level, queryCMLimit):
+    global seq
+    subcategories = list_subcategories(node.value, queryCMLimit)
     for subcategory in subcategories:
-        node.addChild(Node(subcategory, node))
+        seq = seq + 1
+        node.addChild(Node(subcategory, seq, node))
 
-    return node
-
-
-def buildTree(node, level):
-    print('level>', level)
-    expandNode(node)
     if (level > 1):
         for child in node.children:
-            buildTree(child, level-1)
+            buildTree(child, level-1, queryCMLimit)
 
 
 def getFilePath(state):
-    (queryParameter, queryLevel) = state
-    return '../out/' + queryParameter + '_' + str(queryLevel)
+    (queryParameter, queryLevel, queryCMLimit) = state
+    return '../out/' + queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
 
 
 def shouldBuildTree(state):
@@ -36,8 +32,6 @@ def shouldBuildTree(state):
 
 
 def main():
-    print("hello world!")
-
     # Read parameters from CLI
     argv = sys.argv[1:]
     argc = len(argv)
@@ -55,16 +49,27 @@ def main():
     else:
         raise Exception('Invalid parameters!')
 
-    state = (queryParameter, queryLevel)
+    state = (queryParameter, queryLevel, queryCMLimit)
     filepath = getFilePath(state)
 
     if (shouldBuildTree(state)):
-        t = Node(queryParameter, None)
-        buildTree(t, queryLevel)
+        t = Node(queryParameter)
+        buildTree(t, queryLevel, queryCMLimit)
         fp = open(filepath, 'w')
         t.dumpToFile(fp)
     else:
         t = Node.fromFile(filepath)
+
+    print('Tree:   ', queryParameter)
+    print('Height: ', t.height)
+
+    total_per_levels = 0
+    for i in range(0, t.height):
+        total_i = t.countInLevel(i)
+        total_per_levels += total_i
+        print('Total in level:', i, total_i)
+
+    print(total_per_levels)
 
 
 if __name__ == "__main__":

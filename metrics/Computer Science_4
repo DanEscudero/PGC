@@ -1,0 +1,15 @@
+Tree:    Computer Science
+Height:  9
+T:       9625
+T_max:   {'count': 500, 'node': 'Video games by company'}
+T_min:   {'count': 0, 'node': 'Defunct American computer magazines'}
+Total in level: 0 0
+Total in level: 1 4691
+Total in level: 2 1953
+Total in level: 3 1676
+Total in level: 4 543
+Total in level: 5 184
+Total in level: 6 400
+Total in level: 7 138
+Total in level: 8 17
+9602
