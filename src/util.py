@@ -38,6 +38,25 @@ def query_subcategories(field, max):
     return session.get(url='https://en.wikipedia.org/w/api.php', params=params)
 
 
+def parse_args(argv):
+    argv = argv[1:]
+    argc = len(argv)
+    if argc == 3:
+        queryParameter = argv[0]
+        queryLevel = int(argv[1])
+        if (argv[2].isdigit()):
+            queryCMLimit = int(argv[2])
+        elif (argv[2].lower() == 'max'):
+            queryCMLimit = 'max'
+        else:
+            raise Exception(
+                'Invalid max value!. Please use: [0-9]+|\'max\' (limited to 500)')
+    else:
+        raise Exception('Invalid parameters!')
+
+    return (queryParameter, queryLevel, queryCMLimit)
+
+
 def list_subcategories(field, max):
     raw_info = query_subcategories(field, max).json()
 

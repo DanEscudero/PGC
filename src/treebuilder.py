@@ -1,7 +1,7 @@
 import sys
 import os.path
 from Node import Node
-from util import list_subcategories
+from util import list_subcategories, parse_args
 
 # Defaults
 DEFAULT_QUERY_LEVEL = 3
@@ -33,30 +33,13 @@ def shouldBuildTree(state):
 
 def main():
     # Read parameters from CLI
-    argv = sys.argv[1:]
-    argc = len(argv)
-
-    if argc == 3:
-        queryParameter = argv[0]
-        queryLevel = int(argv[1])
-        if (argv[2].isdigit()):
-            queryCMLimit = int(argv[2])
-        elif (argv[2].lower() == 'max'):
-            queryCMLimit = 'max'
-        else:
-            raise Exception(
-                'Invalid max value!. Please use: [0-9]+|\'max\' (limited to 500)')
-    else:
-        raise Exception('Invalid parameters!')
-
-    state = (queryParameter, queryLevel, queryCMLimit)
+    state = parse_args(sys.argv)
     filepath = getFilePath(state)
 
     if (shouldBuildTree(state)):
         t = Node(queryParameter)
         buildTree(t, queryLevel, queryCMLimit)
-        fp = open(filepath, 'w')
-        t.dumpToFile(fp)
+        t.dumpToFile(open(filepath, 'w'))
     else:
         t = Node.fromFile(filepath)
 
