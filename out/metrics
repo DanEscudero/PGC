@@ -1,29 +1,39 @@
-Tree:    Neuroscience
-Height:  4
-T:       5684
-T_max:   {'count': 78, 'node': 'Psychiatrists by nationality'}
-T_min:   {'count': 0, 'node': 'Neuroscience awards'}
-avg: 45.0
-avg: 4.1
-avg: 5.2
-avg: 4.7
-
+STARTING Computer Science
 Tree:    Computer Science
 Height:  4
 T:       9710
 T_max:   {'count': 500, 'node': 'Video games by company'}
 T_min:   {'count': 0, 'node': 'Defunct American computer magazines'}
-avg: 23.0
-avg: 8.6
-avg: 8.6
-avg: 4.6
-
+average 1: 23.0
+average 2: 8.6
+average 3: 8.6
+average 4: 4.6
+2591
+8380
+8803
+STARTING Neuroscience
+Tree:    Neuroscience
+Height:  4
+T:       5684
+T_max:   {'count': 78, 'node': 'Psychiatrists by nationality'}
+T_min:   {'count': 0, 'node': 'Neuroscience awards'}
+average 1: 45.0
+average 2: 4.1
+average 3: 5.2
+average 4: 4.7
+764
+4047
+115
+STARTING Pedagogy
 Tree:    Pedagogy
 Height:  4
 T:       1079
 T_max:   {'count': 50, 'node': 'Educational theorists by nationality'}
 T_min:   {'count': 0, 'node': 'Antioch College'}
-avg: 16.0
-avg: 3.6
-avg: 3.7
-avg: 3.6
+average 1: 16.0
+average 2: 3.6
+average 3: 3.7
+average 4: 3.6
+546
+933
+191
