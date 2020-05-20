@@ -8,7 +8,6 @@ def main():
     state = parse_args(sys.argv)
     (queryParameter, specificTerm, queryLevel, queryCMLimit) = state
     clean_term = cleanTerm(specificTerm)
-    print(clean_term)
 
     filepath = getFilePath(state)
 
@@ -25,7 +24,7 @@ def main():
         print('not found!')
 
     for term in terms:
-        print(term)
+        print(term.value)
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ def cleanTerm(string):
     # Taken from https://stackabuse.com/removing-stop-words-from-strings-in-python/
     tokens = word_tokenize(string)
     dirty = stopwords.words()
-    dirty.extend(['.', ',', '\'', '!', '?', '-'])
+    dirty.extend(['.', ',', '\'', '!', '?', '-', '(', ')'])
     return [(word.lower()) for word in tokens if not word in dirty]
 
 

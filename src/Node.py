@@ -19,8 +19,8 @@ class Node(object):
         else:
             parent = self.parent.value
 
-        s = 'Node: ' + self.value + '\n'
-        s += 'Parent: ' + parent + '\n'
+        s = 'Parent  : ' + parent + '\n'
+        s += 'Node    : ' + self.value + '\n'
         s += 'Children: ' + \
             (', ').join(map(lambda x: x.value, self.children)) + '\n'
         return s
