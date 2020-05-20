@@ -1,4 +1,5 @@
 import functools
+from util import cleanTerm
 
 SEPARATOR = ' $sep$ '
 
@@ -6,6 +7,8 @@ SEPARATOR = ' $sep$ '
 class Node(object):
     def __init__(self, value, seq=0, parent=None):
         self.value = value
+        # keep clean term can make searches faster down the way
+        self.clearTermTokens = cleanTerm(value)
         self.parent = parent
         self.children = []
         self.seq = str(seq)
@@ -32,6 +35,14 @@ class Node(object):
                 return found
 
         return None
+
+    def lookForTerm(self, search_clean, accumulated=[]):
+        # called 'clean' here, as we assume it's been through cleanTerm
+        if (Node.termMatch(search_clean, self.clearTermTokens)):
+            accumulated.append(self)
+
+        for child in self.children:
+            child.lookForTerm(search_clean, accumulated)
 
     @property
     def count(self):
@@ -90,7 +101,14 @@ class Node(object):
         self.children.append(obj)
         obj.parent = self
 
-    # TODO: reduce n*log(n) complexity is necessary?
+    @staticmethod
+    def termMatch(search_clean, tree_clean):
+        for search_term in search_clean:
+            if (search_term in tree_clean):
+                return True
+
+        return False
+
     @staticmethod
     def fromFile(filepath):
         with open(filepath) as f:

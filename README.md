@@ -2,7 +2,7 @@
 
 Para rodar:
 
-    python3 treebuilder.py [Topico] [Nivel]
+    python3 treeBuilder.py [Topico] [Nivel]
 
 Onde **Topico** é o nó da raíz da árvore, e **Nivel** é a altura máxima da árvore. Note que a árvore pode ser menor do que o nível especificado, dependendo do tópico escolhido, mas nunca será maior.
 

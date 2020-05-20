@@ -1,5 +1,5 @@
 import sys
-from treebuilder import shouldBuildTree, getFilePath
+from treeBuilder import shouldBuildTree, getFilePath
 from util import parse_args
 from Node import Node
 import random
@@ -7,7 +7,7 @@ import random
 
 def main():
     state = parse_args(sys.argv)
-    (queryParameter, queryLevel, queryCMLimit) = state
+    (queryParameter, specificParameter, queryLevel, queryCMLimit) = state
     filepath = getFilePath(state)
 
     if (shouldBuildTree(state)):

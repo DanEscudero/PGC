@@ -23,7 +23,7 @@ def buildTree(node, level, queryCMLimit):
 
 
 def getFilePath(state):
-    (queryParameter, queryLevel, queryCMLimit) = state
+    (queryParameter, specificParameter, queryLevel, queryCMLimit) = state
     return '../out/' + queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
 
 
@@ -35,6 +35,8 @@ def main():
     # Read parameters from CLI
     state = parse_args(sys.argv)
     filepath = getFilePath(state)
+
+    (queryParameter, _, queryLevel, queryCMLimit) = state
 
     if (shouldBuildTree(state)):
         t = Node(queryParameter)

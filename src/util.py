@@ -1,5 +1,7 @@
 import json
 import requests
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
 
 def pp_json(json_thing, sort=True, indents=4):
@@ -38,15 +40,24 @@ def query_subcategories(field, max):
     return session.get(url='https://en.wikipedia.org/w/api.php', params=params)
 
 
+def cleanTerm(string):
+    # Taken from https://stackabuse.com/removing-stop-words-from-strings-in-python/
+    tokens = word_tokenize(string)
+    dirty = stopwords.words()
+    dirty.extend(['.', ',', '\'', '!', '?', '-'])
+    return [(word.lower()) for word in tokens if not word in dirty]
+
+
 def parse_args(argv):
     argv = argv[1:]
     argc = len(argv)
-    if argc == 3:
+    if argc == 4:
         queryParameter = argv[0]
-        queryLevel = int(argv[1])
-        if (argv[2].isdigit()):
-            queryCMLimit = int(argv[2])
-        elif (argv[2].lower() == 'max'):
+        specificParameter = argv[1]
+        queryLevel = int(argv[2])
+        if (argv[3].isdigit()):
+            queryCMLimit = int(argv[3])
+        elif (argv[3].lower() == 'max'):
             queryCMLimit = 'max'
         else:
             raise Exception(
@@ -54,7 +65,7 @@ def parse_args(argv):
     else:
         raise Exception('Invalid parameters!')
 
-    return (queryParameter, queryLevel, queryCMLimit)
+    return (queryParameter, specificParameter, queryLevel, queryCMLimit)
 
 
 def list_subcategories(field, max):
