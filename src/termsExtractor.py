@@ -18,13 +18,13 @@ def main():
 
     terms = []
     t = t.lookForTerm(clean_term, terms)
-    print(clean_term)
 
     if (len(terms) == 0):
         print('not found!')
 
-    for term in terms:
-        print(term.value)
+    values = list(set(map(lambda x: x.value, terms)))
+    for value in values:
+        print(value)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import functools
+import itertools
 from util import cleanTerm
 
 SEPARATOR = ' $sep$ '
@@ -36,10 +37,35 @@ class Node(object):
 
         return None
 
+    # terms comparison function, returns bool
+    @staticmethod
+    def termMatch(search_clean, tree_clean):
+
+        def join(p): return (' ').join(p)
+        def perms(term): return list(map(join, itertools.permutations(term)))
+
+        # supposing tree_clean is ['a', 'b', 'c'], tree_permutations is ['a b c', 'a c b', 'b a c', ...]
+        tree_permutations = perms(tree_clean)
+        search_permutations = perms(search_clean)
+
+        # check if any permutation of one of the terms is a substring of another one
+        for tree_permutation in tree_permutations:
+            for search_permutation in search_permutations:
+                if (tree_permutation in search_permutation or search_permutation in tree_permutation):
+                    return True
+
+        return False
+
+    # must return list
+    @staticmethod
+    def getNeighborhood(t):
+        return [t, t.parent] + t.children
+
+    # search_clean is assumed to have passed through cleanTerm
     def lookForTerm(self, search_clean, accumulated=[]):
-        # called 'clean' here, as we assume it's been through cleanTerm
         if (Node.termMatch(search_clean, self.clearTermTokens)):
-            accumulated.append(self)
+            neighborhood = Node.getNeighborhood(self)
+            accumulated.extend(neighborhood)
 
         for child in self.children:
             child.lookForTerm(search_clean, accumulated)
@@ -100,14 +126,6 @@ class Node(object):
 
         self.children.append(obj)
         obj.parent = self
-
-    @staticmethod
-    def termMatch(search_clean, tree_clean):
-        for search_term in search_clean:
-            if (search_term in tree_clean):
-                return True
-
-        return False
 
     @staticmethod
     def fromFile(filepath):
