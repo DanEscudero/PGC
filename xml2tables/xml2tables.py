@@ -6,6 +6,7 @@ import fileinput
 import operator
 import locale
 import os
+import tarfile
 #import unicodedata
 locale.setlocale(locale.LC_ALL, "pt_BR.utf8")
 
@@ -113,7 +114,7 @@ def procurarPrimeiro(vetor):
     return ""
 
 # ---------------------------------------------------------
-if __name__ == "__main__":
+if __name__ == "x":
     inFilePessoas   = sys.argv[1]  # "listaIDs.txt.mini"
 
     prefixo = inFilePessoas[:-4]
@@ -674,9 +675,13 @@ if __name__ == "__main__":
     #######################################################################3
 
 ####
-'''
-with zipfile.ZipFile(cvPath) as myzip:
-                    obj = myzip.open("curriculo.xml")
-                    cvLattesHTML = obj.read()
-                    obj.close()
-'''
+
+tar_path = '../tar/ex.tar'
+
+# '0/0000000403000690.zip/curriculo.xml'
+mytar = tarfile.TarFile(tar_path)
+print(mytar.list())
+# obj = myzip.open('curriculo.xml')
+# cvLattesHTML = obj.read()
+# print(cvLattesHTML)
+# obj.close()
