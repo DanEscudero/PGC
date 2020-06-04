@@ -6,39 +6,20 @@ import fileinput
 import operator
 import locale
 import os
-import tarfile
-#import unicodedata
+import unicodedata
+import zipfile
+import io
+
 locale.setlocale(locale.LC_ALL, "pt_BR.utf8")
 
 regex = r"[-'a-zA-ZÀ-ÖØ-öø-ÿ0-9][-'a-zA-ZÀ-ÖØ-öø-ÿ0-9]+"   # raw string
 
 ##############################################################################################
-xmlDir = "./XMLs/"
-##############################################################################################
+xmlDir = "../tar/"
 
 ##############################################################################################
-
-## Os nomes dos coautores nao sao considerados
-##############################################
-def agrupaCoautores(lista):
-    autores = list()
-    for aut in lista: #jornal.findall('AUTORES'): 
-        aut_nome  = aut.get('NOME-PARA-CITACAO').split(";")[0].strip()
-        aut_ordem = int(aut.get('ORDEM-DE-AUTORIA'))
-        autores.append( (aut_nome, aut_ordem) )
-    autores.sort(key=operator.itemgetter(1))
-    nomes = ""
-    for (a,b) in autores:
-        nomes += a + "; "
-    nomes = nomes.rstrip("; ")
-
-    return nomes
-
-#########################################################################################
-def salvarArquivo(ouFile, s):
-    arquivo = open(ouFile, 'w')
-    arquivo.write(s)  # .encode('utf8'))
-    arquivo.close()
+Termos    = list()
+dicTermos = dict()
 
 #########################################################################################
 def remove_accents(input_str):
@@ -46,20 +27,19 @@ def remove_accents(input_str):
     return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
 #########################################################################################
-def filtrarPublicacao(titulo, pChave):
+def filtrarPublicacao(titulo, pChave=[]):
+    if len(Termos)==0:
+        return (True, "")
+
     freq = [0]*len(Termos)
-    resp = False
 
     texto = titulo
     for ppp in pChave:
         texto = texto + " " + ppp
     texto = remove_accents(texto)
 
-    #print ("*******************************")
-    #print (titulo)
-    #print (texto)
     for (iTermo, Termo) in enumerate(Termos):
-        numeroDePartesAchadas =0 
+        numeroDePartesAchadas = 0 
 
         for parteT in dicTermos[Termo]:
             if "*" in parteT:
@@ -72,15 +52,28 @@ def filtrarPublicacao(titulo, pChave):
 
         if numeroDePartesAchadas == len(dicTermos[Termo]): # se todas as partes termos achado
             freq[iTermo] += 1
-            #print (">>>>>>>::::::", Termo)
             
     if sum(freq)>=1:
         freq = "\t".join(str(i) for i in freq)
-        resp = True
+        return (True, freq)    # freq = "1 2 0 0 0 0 1" # do tamanho da lista de termos
+    else:
+        return (False, "")
 
-    ## resp = True / False
-    ## freq = "1 2 0 0 0 0 1" # do tamanho da lista de termos
-    return (resp, freq)
+
+##############################################################################################
+def agrupaCoautores(lista):
+    autores = list()
+    for aut in lista:
+        aut_nome  = aut.get('NOME-PARA-CITACAO').split(";")[0].strip()
+        aut_ordem = int(aut.get('ORDEM-DE-AUTORIA'))
+        autores.append( (aut_nome, aut_ordem) )
+    autores.sort(key=operator.itemgetter(1))
+    nomes = ""
+    for (a,b) in autores:
+        nomes += a + "; "
+    nomes = nomes.rstrip("; ")
+
+    return nomes
 
 #########################################################################################
 def intValidar(ano):
@@ -114,27 +107,36 @@ def procurarPrimeiro(vetor):
     return ""
 
 # ---------------------------------------------------------
-if __name__ == "x":
+if __name__ == "__main__":
     inFilePessoas   = sys.argv[1]  # "listaIDs.txt.mini"
 
+    if len(sys.argv)>2: # Leitura de termos (um por linha, veja exemplo)
+        inFileTermos    = sys.argv[2]  
+
+        for linha in fileinput.input(inFileTermos):
+            t = linha.strip()
+            if len(t)>0:
+                Termos.append( t )
+ 
+                nt = remove_accents(t) #unicodedata.normalize('NFKD', t)
+                partes = nt.split(" AND ")
+                partes = [x.strip(' ').lower() for x in partes]  # tiramos os esp
+                dicTermos[t] = partes
+        
+        print ("TERMOS CONSIDERADOS PELA BUSCA:")
+        for (i,_t) in enumerate(Termos):
+            print(f"{i}\t{_t:40s}\t{dicTermos[_t]}")
+
     prefixo = inFilePessoas[:-4]
-    ou_caracteristicas= prefixo + "---Tabela-consolidada.csv"
+    prefixo = '../out/listagens/'
 
-    ou_atuacoes       = prefixo + "---Atuacoes-profissionais.csv"
-    ou_formacoes      = prefixo + "---Formacoes-academicas.csv"
+    ou_caracteristicas= prefixo + "Tabela-consolidada.csv"
 
-    ou_periodico      = prefixo + "---Publicacoes-periodicos.csv"
-    ou_eventos        = prefixo + "---Publicacoes-eventos.csv"
-    ou_livros         = prefixo + "---Publicacoes-livros.csv"
-    ou_cap_livros     = prefixo + "---Publicacoes-cap_livros.csv"
-
-    ou_posdoutorado   = prefixo + "---Orientacoes-posdoutorado.csv"
-    ou_doutorado      = prefixo + "---Orientacoes-doutorado.csv"
-    ou_mestrado       = prefixo + "---Orientacoes-mestrado.csv"
-    ou_tcc            = prefixo + "---Orientacoes-tcc.csv"
-    ou_ic             = prefixo + "---Orientacoes-ic.csv"
-    ou_outra          = prefixo + "---Orientacoes-outranatureza.csv"
-
+    ou_periodico      = prefixo + "Publicacoes-periodicos.csv"
+    ou_eventos        = prefixo + "Publicacoes-eventos.csv"
+    ou_livros         = prefixo + "Publicacoes-livros.csv"
+    ou_cap_livros     = prefixo + "Publicacoes-cap_livros.csv"
+    
     ##########################################################################################
     # Leitura das pessoas
     ##########################################################################################
@@ -155,12 +157,18 @@ if __name__ == "x":
     O_ic             = dict()
     O_outra          = dict()  ## nao tem especializacao nos CVs Lattes para orientados?
 
+    attempt         = 0
+    success         = 0
+    not_found       = 0
+    bad_format      = 0
+    disconsiderated = 0
 
     for linha in fileinput.input(inFilePessoas):
         idLattes = linha.strip()
         if idLattes=="":
             continue
-        print ("\n\n>>->>", idLattes)
+        print ("PROCESSANDO >>->>", idLattes)
+        attempt = attempt + 1
 
         #####################################################################################
         # Variáveis importantes
@@ -188,129 +196,44 @@ if __name__ == "x":
         dicAtuacoes[idLattes]       = list()
 
         #####################################################################################
-        xml      = xmlDir +"/"+ idLattes + ".xml"      
+        xml = xmlDir + idLattes[-1] +"/"+ idLattes + ".zip" 
         if not os.path.isfile(xml):
+            not_found = not_found + 1
             print ("[ERRO] CV nao existe no diretorio base:", idLattes)
-            dicPesquisadores[idLattes] = f"{idLattes}\tCV-NAO-FOI-COLETADO-DA-PLATAFORMA-LATTES"
+            dicPesquisadores[idLattes] = f"'{idLattes}\tCV-NAO-FOI-COLETADO-DA-PLATAFORMA-LATTES"
             continue
         try:
-            root     = ET.parse(xml).getroot()
+            with zipfile.ZipFile(xml) as myzip:
+                cv   = myzip.open("curriculo.xml").read()
+                root = ET.fromstring(cv)
         except:
+            bad_format = bad_format + 1
             print ("[ERRO] CV com problema com no seu formato/conteúdo:", idLattes)
-            dicPesquisadores[idLattes] = f"{idLattes}\tCV-COM-PROBLEMA-NO-SEU-FORMATO/CONTEÚDO"
+            dicPesquisadores[idLattes] = f"'{idLattes}\tCV-COM-PROBLEMA-NO-SEU-FORMATO/CONTEÚDO"
             continue
             
         dataCV   = root.get('DATA-ATUALIZACAO')
 
         if dataCV==None:
+            disconsiderated = disconsiderated + 1
             print ("[ERRO] CV desconsiderado por nao ter dados:", idLattes)
-            dicPesquisadores[idLattes] = f"{idLattes}\tCV-COM-PROBLEMA-NO-SEU-FORMATO/CONTEÚDO"
+            dicPesquisadores[idLattes] = f"'{idLattes}\tCV-COM-PROBLEMA-NO-SEU-FORMATO/CONTEÚDO"
         else:
+            success = success + 1
             nome              = root.find('DADOS-GERAIS').get('NOME-COMPLETO').replace("\n"," ").replace("\t"," ").strip()
             nomeEmCitacoes    = root.find('DADOS-GERAIS').get('NOME-EM-CITACOES-BIBLIOGRAFICAS').replace("\n"," ").replace("\t"," ").strip()
             paisNacimento     = root.find('DADOS-GERAIS').get('PAIS-DE-NASCIMENTO')
             paisNacionalidade = root.find('DADOS-GERAIS').get('PAIS-DE-NACIONALIDADE')
 
             #####################################################################################
-            # FORMACOES
-            #####################################################################################
-
-            for formacoes in root.iter('FORMACAO-ACADEMICA-TITULACAO'):
-                for xx in formacoes.iter('ESPECIALIZACAO'):
-                    if strValidar(xx,'STATUS-DO-CURSO')=="CONCLUIDO":
-                        f_ano1            = strValidar(xx, 'ANO-DE-INICIO')
-                        f_ano2            = strValidar(xx, 'ANO-DE-CONCLUSAO')
-                        f_nomeInstituicao = strValidar(xx, 'NOME-INSTITUICAO')
-                        f_nomeCurso       = strValidar(xx, 'NOME-CURSO')
-                        f_bolsa           = strValidar(xx, 'FLAG-BOLSA')
-                        f_nomeAgencia     = strValidar(xx, 'NOME-AGENCIA')
-                        f_idOrientador    = strValidar(xx, 'NUMERO-ID-ORIENTADOR')
-                        dicFormacoes[idLattes]["E"].append ( (f_ano1, f_ano2, f_nomeInstituicao, f_nomeCurso, f_bolsa, f_nomeAgencia, f_idOrientador)  )
-
-                for xx in formacoes.iter('GRADUACAO'):
-                    if strValidar(xx,'STATUS-DO-CURSO')=="CONCLUIDO":
-                        f_ano1            = strValidar(xx, 'ANO-DE-INICIO')
-                        f_ano2            = strValidar(xx, 'ANO-DE-CONCLUSAO')
-                        f_nomeInstituicao = strValidar(xx, 'NOME-INSTITUICAO')
-                        f_nomeCurso       = strValidar(xx, 'NOME-CURSO')
-                        f_bolsa           = strValidar(xx, 'FLAG-BOLSA')
-                        f_nomeAgencia     = strValidar(xx, 'NOME-AGENCIA')
-                        f_idOrientador    = strValidar(xx, 'NUMERO-ID-ORIENTADOR')
-                        dicFormacoes[idLattes]["G"].append ( (f_ano1, f_ano2, f_nomeInstituicao, f_nomeCurso, f_bolsa, f_nomeAgencia, f_idOrientador)  )
-
-                for xx in formacoes.iter('MESTRADO'):
-                    if strValidar(xx,'STATUS-DO-CURSO')=="CONCLUIDO":
-                        f_ano1            = strValidar(xx, 'ANO-DE-INICIO')
-                        f_ano2            = strValidar(xx, 'ANO-DE-CONCLUSAO')
-                        f_nomeInstituicao = strValidar(xx, 'NOME-INSTITUICAO')
-                        f_nomeCurso       = strValidar(xx, 'NOME-CURSO')
-                        f_bolsa           = strValidar(xx, 'FLAG-BOLSA')
-                        f_nomeAgencia     = strValidar(xx, 'NOME-AGENCIA')
-                        f_idOrientador    = strValidar(xx, 'NUMERO-ID-ORIENTADOR')
-                        dicFormacoes[idLattes]["M"].append ( (f_ano1, f_ano2, f_nomeInstituicao, f_nomeCurso, f_bolsa, f_nomeAgencia, f_idOrientador)  )
-
-                for xx in formacoes.iter('DOUTORADO'):
-                    if strValidar(xx,'STATUS-DO-CURSO')=="CONCLUIDO":
-                        f_ano1            = strValidar(xx, 'ANO-DE-INICIO')
-                        f_ano2            = strValidar(xx, 'ANO-DE-CONCLUSAO')
-                        f_nomeInstituicao = strValidar(xx, 'NOME-INSTITUICAO')
-                        f_nomeCurso       = strValidar(xx, 'NOME-CURSO')
-                        f_bolsa           = strValidar(xx, 'FLAG-BOLSA')
-                        f_nomeAgencia     = strValidar(xx, 'NOME-AGENCIA')
-                        f_idOrientador    = strValidar(xx, 'NUMERO-ID-ORIENTADOR')
-                        dicFormacoes[idLattes]["D"].append ( (f_ano1, f_ano2, f_nomeInstituicao, f_nomeCurso, f_bolsa, f_nomeAgencia, f_idOrientador)  )
-
-                for xx in formacoes.iter('POS-DOUTORADO'):
-                    if strValidar(xx,'STATUS-DO-CURSO')=="CONCLUIDO":
-                        f_ano1            = strValidar(xx, 'ANO-DE-INICIO')
-                        f_ano2            = strValidar(xx, 'ANO-DE-CONCLUSAO')
-                        f_nomeInstituicao = strValidar(xx, 'NOME-INSTITUICAO')
-                        f_nomeCurso       = strValidar(xx, 'NOME-CURSO')
-                        f_bolsa           = strValidar(xx, 'FLAG-BOLSA')
-                        f_nomeAgencia     = strValidar(xx, 'NOME-AGENCIA')
-                        f_idOrientador    = strValidar(xx, 'NUMERO-ID-ORIENTADOR')
-                        dicFormacoes[idLattes]["P"].append ( (f_ano1, f_ano2, f_nomeInstituicao, f_nomeCurso, f_bolsa, f_nomeAgencia, f_idOrientador)  )
-
-            #####################################################################################
-            # ATUAÇÕES PROFISSIONAIS (COM DEDICAÇÃO EXCLUSIVA)
-            #####################################################################################
-
-            for aa in root.iter('ATUACAO-PROFISSIONAL'):
-                ap_nomeInstituicao = strValidar(aa,'NOME-INSTITUICAO')
-                for vv in aa.iter('VINCULOS'):
-                    ap_tipo          = strValidar(vv, 'TIPO-DE-VINCULO').replace("\n"," ").replace("\t"," ").strip()
-                    ap_enquadramento = strValidar(vv, 'ENQUADRAMENTO-FUNCIONAL').replace("\n"," ").replace("\t"," ").strip()
-
-                    ap_deExclusiva = strValidar(vv, 'FLAG-DEDICACAO-EXCLUSIVA')
-                    ap_mesInicio   = strValidar(vv, 'MES-INICIO')
-                    ap_anoInicio   = strValidar(vv, 'ANO-INICIO')
-                    ap_mesFim      = strValidar(vv, 'MES-FIM')
-                    ap_anoFim      = strValidar(vv, 'ANO-FIM')
-
-                    ap_outrasInfos = strValidar(vv, 'OUTRAS-INFORMACOES').replace("\n"," ").replace("\t"," ").strip()
-                    ap_outroVinc   = strValidar(vv, 'OUTRO-VINCULO-INFORMADO').replace("\n"," ").replace("\t"," ").strip()
-                    ap_outroEnq    = strValidar(vv, 'OUTRO-ENQUADRAMENTO-FUNCIONAL-INFORMADO').replace("\n"," ").replace("\t"," ").strip()
-
-                    if ap_deExclusiva=="SIM":
-                        dicAtuacoes[idLattes].append( (ap_nomeInstituicao, ap_tipo, ap_enquadramento, ap_mesInicio, ap_anoInicio, ap_mesFim, ap_anoFim, ap_outrasInfos, ap_outroVinc, ap_outroEnq ) )
-
-            #####################################################################################
             # ENDEREÇO PROFISSIONAL
             #####################################################################################
-            for profissional in root.iter('ENDERECO-PROFISSIONAL'):
-                ep_Instituicao  = strValidar(profissional, 'NOME-INSTITUICAO-EMPRESA').replace("\n"," ").replace("\t"," ").strip()
-                ep_Orgao        = strValidar(profissional, 'NOME-ORGAO').replace("\n"," ").replace("\t"," ").strip()
-                ep_Unidade      = strValidar(profissional, 'NOME-UNIDADE').replace("\n"," ").replace("\t"," ").strip()
-                ep_Pais         = strValidar(profissional, 'PAIS').replace("\n"," ").replace("\t"," ").strip()
-                ep_UF           = strValidar(profissional, 'UF').replace("\n"," ").replace("\t"," ").strip()
-                ep_Cidade       = strValidar(profissional, 'CIDADE').replace("\n"," ").replace("\t"," ").strip()
-
-            #print ("\t\t", ep_Instituicao)
-            #print ("\t\t", ep_Orgao)
-            #print ("\t\t", ep_Unidade)
-            #print ("\t\t", ep_Pais)
-            #print ("\t\t", ep_UF)
-            #print ("\t\t", ep_Cidade)
+            ep_Instituicao = ""
+            ep_Orgao = ""
+            ep_Unidade = ""
+            ep_Pais = ""
+            ep_UF = ""
+            ep_Cidade = ""
 
             #####################################################################################
             # PRIMEIRA GRANDE ÁREA  && PRIMEIRA ÁREA
@@ -335,7 +258,7 @@ if __name__ == "x":
             #####################################################################################
             # COLETANDO AS INFORMACOES DE PUBLICACOES
             #####################################################################################
-            f0 = f'{idLattes}\t{nome}\t{dataCV}\t{paisNacimento}\t{paisNacionalidade}\t{nomeEmCitacoes}\t{len(dicFormacoes[idLattes]["E"])}\t{len(dicFormacoes[idLattes]["G"])}\t{len(dicFormacoes[idLattes]["M"])}\t{len(dicFormacoes[idLattes]["D"])}\t{len(dicFormacoes[idLattes]["P"])}\t{ep_Instituicao}\t{ep_Orgao}\t{ep_Unidade}\t{ep_Pais}\t{ep_UF}\t{ep_Cidade}\t{primeiraGA}\t{primeiraA}'
+            f0 = f'\'{idLattes}\t{nome}\t\'{dataCV}\t{paisNacimento}\t{paisNacionalidade}\t{nomeEmCitacoes}\t{len(dicFormacoes[idLattes]["E"])}\t{len(dicFormacoes[idLattes]["G"])}\t{len(dicFormacoes[idLattes]["M"])}\t{len(dicFormacoes[idLattes]["D"])}\t{len(dicFormacoes[idLattes]["P"])}\t{ep_Instituicao}\t{ep_Orgao}\t{ep_Unidade}\t{ep_Pais}\t{ep_UF}\t{ep_Cidade}\t{primeiraGA}\t{primeiraA}'
             dicPesquisadores[idLattes] = f0
 
             #####################################################################################
@@ -362,8 +285,11 @@ if __name__ == "x":
                         if ppp!="":
                             pChave.append(ppp)
 
-                pChave = str(pChave)
-                P_periodicos[idLattes].append( (titulo, str(ano), doi, veiculo, issn, volume, fasciculo, serie, pinicial, pfinal, pChave, autores, str(len(autores.split(";"))) ) )
+                (inserir, frequencias) = filtrarPublicacao(titulo, pChave)
+
+                if inserir:
+                    pChave = str(pChave)
+                    P_periodicos[idLattes].append( (titulo, str(ano), doi, veiculo, issn, volume, fasciculo, serie, pinicial, pfinal, pChave, autores, str(len(autores.split(";"))), frequencias ) )
 
             #####################################################################################
             # PUBLICACÕES EM EVENTOS - COMPLETO
@@ -380,7 +306,7 @@ if __name__ == "x":
                     serie     = strValidar(evento.find('DETALHAMENTO-DO-TRABALHO'), 'SERIE').strip()
                     pinicial  = strValidar(evento.find('DETALHAMENTO-DO-TRABALHO'), 'PAGINA-INICIAL').strip()
                     pfinal    = strValidar(evento.find('DETALHAMENTO-DO-TRABALHO'), 'PAGINA-FINAL').strip()
-                    #autores   = agrupaCoautores(evento.findall('AUTORES'))
+                    autores   = agrupaCoautores(evento.findall('AUTORES'))
 
                     pChave = []
                     if evento.find('PALAVRAS-CHAVE') != None:
@@ -389,8 +315,11 @@ if __name__ == "x":
                             if ppp!="":
                                 pChave.append(ppp)
                  
-                    pChave = str(pChave)
-                    P_eventos[idLattes].append( (titulo, str(ano), doi, veiculo, isbn, volume, fasciculo, serie, pinicial, pfinal, pChave) )
+                    (inserir, frequencias) = filtrarPublicacao(titulo, pChave)
+
+                    if inserir:
+                        pChave = str(pChave)
+                        P_eventos[idLattes].append( (titulo, str(ano), doi, veiculo, isbn, volume, fasciculo, serie, pinicial, pfinal, pChave, autores, str(len(autores.split(";"))), frequencias ) )
                      
         
             #####################################################################################
@@ -407,7 +336,7 @@ if __name__ == "x":
                 edicao    = strValidar(livro.find('DETALHAMENTO-DO-LIVRO'), 'NUMERO-DA-EDICAO-REVISAO').strip()
                 serie     = strValidar(livro.find('DETALHAMENTO-DO-LIVRO'), 'NUMERO-DA-SERIE').strip()
                 editora   = strValidar(livro.find('DETALHAMENTO-DO-LIVRO'), 'NOME-DA-EDITORA').replace("\n"," ").replace("\t"," ").strip()
-                #autores   = agrupaCoautores(livro.findall('AUTORES'))
+                autores   = agrupaCoautores(livro.findall('AUTORES'))
 
                 pChave = []
                 if livro.find('PALAVRAS-CHAVE') != None:
@@ -415,9 +344,12 @@ if __name__ == "x":
                         ppp = strValidar(livro.find('PALAVRAS-CHAVE'), "PALAVRA-CHAVE-" + numPalavraChave).strip()
                         if ppp!="":
                             pChave.append(ppp)
+                
+                (inserir, frequencias) = filtrarPublicacao(titulo, pChave)
 
-                pChave = str(pChave)
-                P_livros[idLattes].append( (titulo, str(ano), tipo, natureza, volumes, paginas, isbn, edicao, serie, editora, pChave) )
+                if inserir:
+                    pChave = str(pChave)
+                    P_livros[idLattes].append( (titulo, str(ano), tipo, natureza, volumes, paginas, isbn, edicao, serie, editora, pChave, autores, str(len(autores.split(";"))), frequencias ) )
 
 
             #####################################################################################
@@ -432,7 +364,7 @@ if __name__ == "x":
                 pagina2     = strValidar(capitulo.find('DETALHAMENTO-DO-CAPITULO'), 'PAGINA-FINAL').strip()
                 isbn        = strValidar(capitulo.find('DETALHAMENTO-DO-CAPITULO'), 'ISBN').strip()
                 editora     = strValidar(capitulo.find('DETALHAMENTO-DO-CAPITULO'), 'NOME-DA-EDITORA').replace("\n"," ").replace("\t"," ").strip()
-                #autores     = agrupaCoautores(capitulo.findall('AUTORES'))
+                autores     = agrupaCoautores(capitulo.findall('AUTORES'))
 
                 pChave = []
                 if capitulo.find('PALAVRAS-CHAVE') != None:
@@ -441,247 +373,77 @@ if __name__ == "x":
                         if ppp!="":
                             pChave.append(ppp)
 
-                pChave = str(pChave)
-                P_cap_livros[idLattes].append( (titulo, str(ano), tipo, tituloLivro, pagina1, pagina2, isbn, editora, pChave) )
+                (inserir, frequencias) = filtrarPublicacao(titulo, pChave)
 
-
-            #####################################################################################
-            # COLETANDO AS INFORMACOES DE ORIENTACOES CONCLUÍDAS
-            #####################################################################################
-
-
-            #####################################################################################
-            # Orientações de Mestrado
-            #####################################################################################
-
-            for orientacao in root.iter('ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'):
-                natureza   = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'NATUREZA').strip()
-                tipo       = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'TIPO').strip()
-                titulo     = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'TITULO').replace("\n"," ").replace("\t"," ").strip()
-                ano        = intValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO').get('ANO'))
-                pais       = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'PAIS').strip()
-                idioma     = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'IDIOMA').strip()
-
-                tipoOrientacao  = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'TIPO-DE-ORIENTACAO').strip()
-                nomeOrientado   = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'NOME-DO-ORIENTADO').strip()
-                nomeInstituicao = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'NOME-DA-INSTITUICAO').strip()
-                nomeOrgao       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'NOME-ORGAO').strip()
-                nomeCurso       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'NOME-DO-CURSO').strip()
-                flagBolsa       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'FLAG-BOLSA').strip()
-                nomeAgencia     = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'), 'NOME-DA-AGENCIA').strip()
-
-                O_mestrado[idLattes].append( (natureza, tipo, titulo, str(ano), pais, idioma, tipoOrientacao, nomeOrientado, nomeInstituicao, nomeOrgao, nomeCurso, flagBolsa, nomeAgencia)  )
-
-            #####################################################################################
-            # Orientações de Doutorado
-            #####################################################################################
-
-            for orientacao in root.iter('ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'):
-                natureza   = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'NATUREZA').strip()
-                tipo       = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'TIPO').strip()
-                titulo     = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'TITULO').replace("\n"," ").replace("\t"," ").strip()
-                ano        = intValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO').get('ANO'))
-                pais       = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'PAIS').strip()
-                idioma     = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'IDIOMA').strip()
-
-                tipoOrientacao  = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'TIPO-DE-ORIENTACAO').strip()
-                nomeOrientado   = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'NOME-DO-ORIENTADO').strip()
-                nomeInstituicao = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'NOME-DA-INSTITUICAO').strip()
-                nomeOrgao       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'NOME-ORGAO').strip()
-                nomeCurso       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'NOME-DO-CURSO').strip()
-                flagBolsa       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'FLAG-BOLSA').strip()
-                nomeAgencia     = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'), 'NOME-DA-AGENCIA').strip()
-
-                O_doutorado[idLattes].append( (natureza, tipo, titulo, str(ano), pais, idioma, tipoOrientacao, nomeOrientado, nomeInstituicao, nomeOrgao, nomeCurso, flagBolsa, nomeAgencia)  )
-
-            #####################################################################################
-            # Orientações de Pós-Doutorado
-            #####################################################################################
-
-            for orientacao in root.iter('ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'):
-                natureza   = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'NATUREZA').strip()
-                tipo       = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'TIPO').strip()
-                titulo     = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'TITULO').replace("\n"," ").replace("\t"," ").strip()
-                ano        = intValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO').get('ANO'))
-                pais       = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'PAIS').strip()
-                idioma     = strValidar(orientacao.find('DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'IDIOMA').strip()
-
-                tipoOrientacao  = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'TIPO-DE-ORIENTACAO').strip()
-                nomeOrientado   = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'NOME-DO-ORIENTADO').strip()
-                nomeInstituicao = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'NOME-DA-INSTITUICAO').strip()
-                nomeOrgao       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'NOME-ORGAO').strip()
-                nomeCurso       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'NOME-DO-CURSO').strip()
-                flagBolsa       = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'FLAG-BOLSA').strip()
-                nomeAgencia     = strValidar(orientacao.find('DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO'), 'NOME-DA-AGENCIA').strip()
-
-                O_posdoutorado[idLattes].append( (natureza, tipo, titulo, str(ano), pais, idioma, tipoOrientacao, nomeOrientado, nomeInstituicao, nomeOrgao, nomeCurso, flagBolsa, nomeAgencia)  )
-    
-            #####################################################################################
-            # Orientações de TCC
-            #####################################################################################
-
-            for orientacao in root.iter('OUTRAS-ORIENTACOES-CONCLUIDAS'):
-                natureza   = strValidar(orientacao.find('DADOS-BASICOS-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'NATUREZA').strip()
-                tipo       = strValidar(orientacao.find('DADOS-BASICOS-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'TIPO').strip()
-                titulo     = strValidar(orientacao.find('DADOS-BASICOS-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'TITULO').replace("\n"," ").replace("\t"," ").strip()
-                ano        = intValidar(orientacao.find('DADOS-BASICOS-DE-OUTRAS-ORIENTACOES-CONCLUIDAS').get('ANO'))
-                pais       = strValidar(orientacao.find('DADOS-BASICOS-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'PAIS').strip()
-                idioma     = strValidar(orientacao.find('DADOS-BASICOS-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'IDIOMA').strip()
-
-                tipoOrientacao  = strValidar(orientacao.find('DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'TIPO-DE-ORIENTACAO').strip()
-                nomeOrientado   = strValidar(orientacao.find('DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'NOME-DO-ORIENTADO').strip()
-                nomeInstituicao = strValidar(orientacao.find('DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'NOME-DA-INSTITUICAO').strip()
-                nomeOrgao       = strValidar(orientacao.find('DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'NOME-ORGAO').strip()
-                nomeCurso       = strValidar(orientacao.find('DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'NOME-DO-CURSO').strip()
-                flagBolsa       = strValidar(orientacao.find('DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'FLAG-BOLSA').strip()
-                nomeAgencia     = strValidar(orientacao.find('DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS'), 'NOME-DA-AGENCIA').strip()
-
-                if natureza=='TRABALHO_DE_CONCLUSAO_DE_CURSO_GRADUACAO':
-                    O_tcc[idLattes].append( (natureza, tipo, titulo, str(ano), pais, idioma, tipoOrientacao, nomeOrientado, nomeInstituicao, nomeOrgao, nomeCurso, flagBolsa, nomeAgencia)  )
-                if natureza=='INICIACAO_CIENTIFICA':
-                    O_ic[idLattes].append( (natureza, tipo, titulo, str(ano), pais, idioma, tipoOrientacao, nomeOrientado, nomeInstituicao, nomeOrgao, nomeCurso, flagBolsa, nomeAgencia)  )
-                if natureza=='ORIENTACAO-DE-OUTRA-NATUREZA':
-                    O_outra[idLattes].append( (natureza, tipo, titulo, str(ano), pais, idioma, tipoOrientacao, nomeOrientado, nomeInstituicao, nomeOrgao, nomeCurso, flagBolsa, nomeAgencia)  )
-
-
-            #####################################################################################
-            #####################################################################################
-
+                if inserir:
+                    pChave = str(pChave)
+                    P_cap_livros[idLattes].append( (titulo, str(ano), tipo, tituloLivro, pagina1, pagina2, isbn, editora, pChave, autores, str(len(autores.split(";"))), frequencias ) )
 
     #######################################################################3
-    # SALVANDO AS CARACTERÍSTICAS DO PESQUISADOR (CONSOLIDADO)
+    # Nota: Estará na base se PELO MENOS uma publicação (dos 4 tipos) tenha sido identificada
     #######################################################################3
-    f = open(ou_caracteristicas, 'w')
-    f.write( "ID-Lattes\tNome\tAtualizacao-CV\tNascimento\tNacionalidade\tNome-em-Citações\tEspecialização\tGraduação\tMestrado\tDoutorado\tPosdoc\tEnd.Prof.Instituição\tEnd.Prof.Órgão\tEnd.Prof.Unidade\tEnd.Prof.Pais\tEnd.Prof.UF\tEnd.Prof.Cidade\tPrimeira-Grande-Área\tPrimeira-Área\tPeriódicos\tEventos\tLivros\tCap-Livros\tSupervisões-Pós-Doutorado\tOrientações-Doutorado\tOrientações-Mestrado\tOrientações-TCC\tOrientações-IC\tOrientações-Outra-Natureza" )
-    for idLattes in Pesquisadores:
-        f.write( "\n" + f"{dicPesquisadores[idLattes]}\t{len(P_periodicos[idLattes])}\t{len(P_eventos[idLattes])}\t{len(P_livros[idLattes])}\t{len(P_cap_livros[idLattes])}\t{len(O_posdoutorado[idLattes])}\t{len(O_doutorado[idLattes])}\t{len(O_mestrado[idLattes])}\t{len(O_tcc[idLattes])}\t{len(O_ic[idLattes])}\t{len(O_outra[idLattes])}" )
-    f.close()
-
-    #######################################################################3
-    # SALVANDO AS FORMAÇÕES
-    #######################################################################3
-    f = open(ou_formacoes, 'w')
-    f.write( "ID-Lattes\tTipo-Formação\tAno-Inicio\tAno-Conclusão\tInstituição\tCurso\tBolsa\tAgência-da-bolsa\tID-Orientador" )
-    for idLattes in Pesquisadores:
-        for tipo in ["E","G","M","D","P"]:
-            for ff in dicFormacoes[idLattes][tipo]:
-                f.write( f"\n{idLattes}\t{tipo}\t" + "\t".join(ff) )
-    f.close()
-
-    #######################################################################3
-    # SALVANDO AS ATUAÇÕES
-    #######################################################################3
-    f = open(ou_atuacoes, 'w')
-    f.write( "ID-Lattes\tInstituição\tTipo-Vínculo\tEnquadramento\tMês-Inicio\tAno-Inicio\tMês-Fim\tAno-Fim\tOutras-Informações\tOutro-Vínculo\tOutro-Enquadramento-Funcional" )
-    for idLattes in Pesquisadores:
-        for aa in dicAtuacoes[idLattes]:
-            f.write( f"\n{idLattes}\t" + "\t".join(aa) )
-    f.close()
-
+    Pesquisadores_na_base = list()
+    if len(Termos)==0:
+        for idLattes in Pesquisadores:
+            Pesquisadores_na_base.append(idLattes)
+    else:
+        for idLattes in Pesquisadores:
+            if len(P_periodicos[idLattes]) + len(P_eventos[idLattes]) + len(P_livros[idLattes]) + len(P_cap_livros[idLattes]):
+                Pesquisadores_na_base.append(idLattes)
 
     #######################################################################3
     # SALVANDO AS PUBLICAÇÕES
     #######################################################################3
-    f = open(ou_periodico, 'w')
-    f.write( "ID-Lattes\tTítulo\tAno\tDOI\tVeículo\tISSN\tVolume\tFascículo\tSerie\tP-inicial\tP-final\tPalavras-chave\tAutores\tQuantidade-autores" )
+    cabecalho_termos = "\t".join(Termos)
+
+    f = open(ou_periodico, 'a')
+    f.write( f"ID-Lattes\tTítulo\tAno\tDOI\tVeículo\tISSN\tVolume\tFascículo\tSerie\tP-inicial\tP-final\tPalavras-chave\tAutores\tQuantidade-autores\t{cabecalho_termos}" )
     for idLattes in Pesquisadores:
-        if  len(P_periodicos[idLattes]) >0:
+        if idLattes in Pesquisadores_na_base and len(P_periodicos[idLattes])>0:
             for pub in P_periodicos[idLattes]:
                 f.write( f"\n{idLattes}\t" + "\t".join( pub ) )
+    f.write("\n")
     f.close()
 
 
-    f = open(ou_eventos, 'w')
-    f.write( "ID-Lattes\tTítulo\tAno\tDOI\tVeículo\tISBN\tVolume\tFascículo\tSerie\tP-inicial\tP-final\tPalavras-chave\t" )
+    f = open(ou_eventos, 'a')
+    f.write( f"ID-Lattes\tTítulo\tAno\tDOI\tVeículo\tISBN\tVolume\tFascículo\tSerie\tP-inicial\tP-final\tPalavras-chave\tAutores\tQuantidade-autores\t{cabecalho_termos}" )
     for idLattes in Pesquisadores:
-        if  len(P_eventos[idLattes]) >0:
+        if idLattes in Pesquisadores_na_base and len(P_eventos[idLattes])>0:
             for pub in P_eventos[idLattes]:
                 f.write( f"\n{idLattes}\t" + "\t".join( pub ) )
+    f.write("\n")
     f.close()
 
 
-    f = open(ou_livros, 'w')
-    f.write( "ID-Lattes\tTítulo\tAno\tTipo\tNatureza\tVolumes\tPáginas\tISBN\tEdição\tSérie\tEditora\tPalavras-chave\t" )
+    f = open(ou_livros, 'a')
+    f.write( f"ID-Lattes\tTítulo\tAno\tTipo\tNatureza\tVolumes\tPáginas\tISBN\tEdição\tSérie\tEditora\tPalavras-chave\tAutores\tQuantidade-autores\t{cabecalho_termos}" )
     for idLattes in Pesquisadores:
-        if  len(P_livros[idLattes]) >0:
+        if idLattes in Pesquisadores_na_base and len(P_livros[idLattes])>0:
             for pub in P_livros[idLattes]:
                 f.write( f"\n{idLattes}\t" + "\t".join( pub ) )
+    f.write("\n")
     f.close()
 
 
-    f = open(ou_cap_livros, 'w')
-    f.write( "ID-Lattes\tTítulo\tAno\tTipo\tTítulo-do-livro\tP-inicial\tP-final\tISBN\tEditora\tPalavras-chave\t" )
+    f = open(ou_cap_livros, 'a')
+    f.write( f"ID-Lattes\tTítulo\tAno\tTipo\tTítulo-do-livro\tP-inicial\tP-final\tISBN\tEditora\tPalavras-chave\tAutores\tQuantidade-autores\t{cabecalho_termos}" )
     for idLattes in Pesquisadores:
-        if  len(P_cap_livros[idLattes]) >0:
+        if idLattes in Pesquisadores_na_base and len(P_cap_livros[idLattes])>0:
             for pub in P_cap_livros[idLattes]:
                 f.write( f"\n{idLattes}\t" + "\t".join( pub ) )
+    f.write("\n")
     f.close()
 
-    #######################################################################3
-    # SALVANDO AS ORIENTAÇÕES
-    #######################################################################3
-    f = open(ou_posdoutorado, 'w')
-    f.write( "ID-Lattes\tNatureza\tTipo\tTítulo\tAno\tPais\tIdioma\tTipo-orientação\tNome-orientado\tNome-instituição\tNome-orgao\tNome-curso\tFlag-bolsa\tNome-Agência\t" )
-    for idLattes in Pesquisadores:
-        if  len(O_posdoutorado[idLattes]) >0:
-            for ori in O_posdoutorado[idLattes]:
-                f.write( f"\n{idLattes}\t" + "\t".join( ori ) )
-    f.close()
-
-    f = open(ou_doutorado, 'w')
-    f.write( "ID-Lattes\tNatureza\tTipo\tTítulo\tAno\tPais\tIdioma\tTipo-orientação\tNome-orientado\tNome-instituição\tNome-orgao\tNome-curso\tFlag-bolsa\tNome-Agência\t" )
-    for idLattes in Pesquisadores:
-        if  len(O_doutorado[idLattes]) >0:
-            for ori in O_doutorado[idLattes]:
-                f.write( f"\n{idLattes}\t" + "\t".join( ori ) )
-    f.close()
-
-    f = open(ou_mestrado, 'w')
-    f.write( "ID-Lattes\tNatureza\tTipo\tTítulo\tAno\tPais\tIdioma\tTipo-orientação\tNome-orientado\tNome-instituição\tNome-orgao\tNome-curso\tFlag-bolsa\tNome-Agência\t" )
-    for idLattes in Pesquisadores:
-        if  len(O_mestrado[idLattes]) >0:
-            for ori in O_mestrado[idLattes]:
-                f.write( f"\n{idLattes}\t" + "\t".join( ori ) )
-    f.close()
-
-    f = open(ou_tcc, 'w')
-    f.write( "ID-Lattes\tNatureza\tTipo\tTítulo\tAno\tPais\tIdioma\tTipo-orientação\tNome-orientado\tNome-instituição\tNome-orgao\tNome-curso\tFlag-bolsa\tNome-Agência\t" )
-    for idLattes in Pesquisadores:
-        if  len(O_tcc[idLattes]) >0:
-            for ori in O_tcc[idLattes]:
-                f.write( f"\n{idLattes}\t" + "\t".join( ori ) )
-    f.close()
-
-    f = open(ou_ic, 'w')
-    f.write( "ID-Lattes\tNatureza\tTipo\tTítulo\tAno\tPais\tIdioma\tTipo-orientação\tNome-orientado\tNome-instituição\tNome-orgao\tNome-curso\tFlag-bolsa\tNome-Agência\t" )
-    for idLattes in Pesquisadores:
-        if  len(O_ic[idLattes]) >0:
-            for ori in O_ic[idLattes]:
-                f.write( f"\n{idLattes}\t" + "\t".join( ori ) )
-    f.close()
-
-    f = open(ou_outra, 'w')
-    f.write( "ID-Lattes\tNatureza\tTipo\tTítulo\tAno\tPais\tIdioma\tTipo-orientação\tNome-orientado\tNome-instituição\tNome-orgao\tNome-curso\tFlag-bolsa\tNome-Agência\t" )
-    for idLattes in Pesquisadores:
-        if  len(O_outra[idLattes]) >0:
-            for ori in O_outra[idLattes]:
-                f.write( f"\n{idLattes}\t" + "\t".join( ori ) )
-    f.close()
-
-
+    counts = "attempt > " + str(attempt) + "\n"
+    counts = counts + 'success > ' + str(success) + '\n'
+    counts = counts + 'not_found > ' + str(not_found) + '\n'
+    counts = counts + 'bad_format > ' + str(bad_format) + '\n'
+    counts = counts + 'disconsiderated > ' + str(disconsiderated) + '\n'
+    
+    f = open('../out/statisticts.txt', 'a')
+    f.write(counts)
 
     #######################################################################3
     print("\ndone!")
     #######################################################################3
-
-####
-
-tar_path = '../tar/ex.tar'
-
-# '0/0000000403000690.zip/curriculo.xml'
-mytar = tarfile.TarFile(tar_path)
-print(mytar.list())
-# obj = myzip.open('curriculo.xml')
-# cvLattesHTML = obj.read()
-# print(cvLattesHTML)
-# obj.close()
