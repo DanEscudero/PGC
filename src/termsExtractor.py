@@ -6,7 +6,7 @@ from Node import Node
 
 def main():
     state = parse_args(sys.argv)
-    (queryParameter, specificTerm, queryLevel, queryCMLimit) = state
+    (_, specificTerm, _, _) = state
     clean_term = cleanTerm(specificTerm)
 
     filepath = getFilePath(state)

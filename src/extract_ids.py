@@ -1,7 +1,7 @@
 import csv
 
 if __name__ == '__main__':
-    path = '../tar/BD-Lattes---nomes-e-caracteristicas---doutores.csv'
+    path = '../../tar/BD-Lattes---nomes-e-caracteristicas---doutores.csv'
 
     fps = []
     for i in range(0, 10):

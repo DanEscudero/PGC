@@ -7,7 +7,7 @@ import random
 
 def main():
     state = parse_args(sys.argv)
-    (queryParameter, specificParameter, queryLevel, queryCMLimit) = state
+    (queryParameter, _, queryLevel, queryCMLimit) = state
     filepath = getFilePath(state)
 
     if (shouldBuildTree(state)):

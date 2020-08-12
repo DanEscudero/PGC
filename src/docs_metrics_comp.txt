@@ -1,0 +1,4 @@
+total_pesquisadores 7883
+max_publicacoes     751
+total_publicacoes   301841
+totais              {'Periódicos': 74891, 'Eventos': 200044, 'Livros': 7867, 'Cap-Livros': 19039}
