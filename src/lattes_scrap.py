@@ -14,7 +14,7 @@ if __name__ == '__main__':
         totals = dict()
         num_required_keys = ['Periódicos', 'Eventos', 'Livros', 'Cap-Livros']
         required_keys = ['Nome']
-        required_keys.extend(num_required_keys)
+        required_keys += num_required_keys
 
         for k in num_required_keys:
             totals[k] = 0

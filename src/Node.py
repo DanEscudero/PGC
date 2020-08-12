@@ -149,6 +149,8 @@ class Node(object):
         lines = Node.getLinesFromFile(filepath)
 
         [name, seq, parent, _] = Node.unpatchLine(lines[0])
+
+        # If there's no parent, create tree
         if (parent == ''):
             t = Node(name, seq, None)
 
