@@ -39,14 +39,13 @@ class Node(object):
 
     # terms comparison function, returns bool
     @staticmethod
-    def termMatch(search_clean, tree_clean):
-
+    def termMatch(clean_searched_term, tree_clean):
         def join(p): return (' ').join(p)
         def perms(term): return list(map(join, itertools.permutations(term)))
 
         # supposing tree_clean is ['a', 'b', 'c'], tree_permutations is ['a b c', 'a c b', 'b a c', ...]
         tree_permutations = perms(tree_clean)
-        search_permutations = perms(search_clean)
+        search_permutations = perms(clean_searched_term)
 
         # check if any permutation of one of the terms is a substring of another one
         for tree_permutation in tree_permutations:
@@ -62,13 +61,13 @@ class Node(object):
         return [t, t.parent] + t.children
 
     # search_clean is assumed to have passed through cleanTerm
-    def lookForTerm(self, search_clean, accumulated=[]):
-        if (Node.termMatch(search_clean, self.clearTermTokens)):
+    def lookForTerm(self, clean_searched_term, accumulated=[]):
+        if (Node.termMatch(clean_searched_term, self.clearTermTokens)):
             neighborhood = Node.getNeighborhood(self)
-            accumulated.extend(neighborhood)
+            accumulated += neighborhood
 
         for child in self.children:
-            child.lookForTerm(search_clean, accumulated)
+            child.lookForTerm(clean_searched_term, accumulated)
 
     @property
     def count(self):
@@ -116,7 +115,7 @@ class Node(object):
     def getChildrenPerLevel(self):
         return -1
 
-    def countChildrenUpToLevel(l):
+    def countChildrenUpToLevel(self, l):
         return -1
 
     def addChild(self, obj):
@@ -127,37 +126,62 @@ class Node(object):
         self.children.append(obj)
         obj.parent = self
 
+    def dumpToFile(self, fp):
+        self.writeSelfToFile(fp)
+
+        for child in self.children:
+            child.dumpToFile(fp)
+
+    def getParentAsString(self):
+        if (self.parent == None):
+            return SEPARATOR
+        else:
+            return self.parent.value + SEPARATOR + str(self.parent.seq)
+
+    def writeSelfToFile(self, fp):
+        args = [self.value, str(self.seq), self.getParentAsString()]
+        line = SEPARATOR.join(args)
+
+        fp.write(line + '\n')
+
     @staticmethod
     def fromFile(filepath):
-        with open(filepath) as f:
-            lines = list(map(lambda x: x[:-1], f.readlines()))  # remove '\n'
-            f.close()
+        lines = Node.getLinesFromFile(filepath)
 
-        [name, seq, parent, parent_seq] = lines[0].split(SEPARATOR)
+        [name, seq, parent, _] = Node.unpatchLine(lines[0])
         if (parent == ''):
             t = Node(name, seq, None)
 
         for line in lines[1:]:
-            [name, seq, parentValue, parentSeq] = line.split(SEPARATOR)
-            parent = t.findNode(parentValue, parentSeq)
-
-            if (parent == None):
-                print(t)
-                print('invalid tree')
-                exit(-1)
-
-            parent.addChild(Node(name, seq, parent))
+            Node.addLineToTree(line, t)
 
         return t
 
-    def dumpToFile(self, fp):
-        if (self.parent == None):
-            parent = SEPARATOR
-        else:
-            parent = self.parent.value + SEPARATOR + str(self.parent.seq)
+    @staticmethod
+    def unpatchLine(line):
+        return line.split(SEPARATOR)
 
-        value = self.value + SEPARATOR + str(self.seq)
-        fp.write(value + SEPARATOR + parent + '\n')
+    @staticmethod
+    def handleInvalidTree(t):
+        print(t)
+        print('invalid tree')
+        exit(-1)
 
-        for child in self.children:
-            child.dumpToFile(fp)
+    @staticmethod
+    def getLinesFromFile(filepath):
+        f = open(filepath)
+        lines = list(map(lambda x: x[:-1], f.readlines()))  # remove '\n'
+        f.close()
+
+        return lines
+
+    @staticmethod
+    def addLineToTree(line, t):
+        [name, seq, parentValue, parentSeq] = Node.unpatchLine(line)
+        parent = t.findNode(parentValue, parentSeq)
+
+        if (parent == None):
+            Node.handleInvalidTree(t)
+
+        newNode = Node(name, seq, parent)
+        parent.addChild(newNode)
