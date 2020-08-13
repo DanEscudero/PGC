@@ -23,7 +23,7 @@ def buildTree(node, level, queryCMLimit):
 
 
 def getFilePath(state):
-    (queryParameter, specificParameter, queryLevel, queryCMLimit) = state
+    (queryParameter, _, queryLevel, queryCMLimit) = state
     return '../out/' + queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
 
 

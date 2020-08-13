@@ -9,15 +9,13 @@ def main():
     (_, specificTerm, _, _) = state
     clean_term = cleanTerm(specificTerm)
 
-    filepath = getFilePath(state)
-
     if (shouldBuildTree(state)):
         raise Exception('Tree should be built first!')
 
     t = Node.fromFile(getFilePath(state))
 
     terms = []
-    t = t.lookForTerm(clean_term, terms)
+    t.lookForTerm(clean_term, terms)
 
     if (len(terms) == 0):
         print('not found!')

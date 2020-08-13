@@ -7,8 +7,7 @@ import random
 
 def main():
     state = parse_args(sys.argv)
-    (queryParameter, _, queryLevel, queryCMLimit) = state
-    filepath = getFilePath(state)
+    (queryParameter, _, _, _) = state
 
     if (shouldBuildTree(state)):
         raise Exception('Tree should be built first!')

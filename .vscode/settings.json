@@ -1,5 +1,15 @@
 {
 	"python.pythonPath": "ENV/bin/python",
 	"python.linting.enabled": true,
-	"python.linting.pylintEnabled": true
+	"python.linting.pylintEnabled": true,
+	"editor.tokenColorCustomizations": {
+		"textMateRules": [
+			{
+				"scope": "meta.function-call.generic.python",
+				"settings": {
+					"foreground": "#ff8c8c"
+				}
+			}
+		]
+	},
 }

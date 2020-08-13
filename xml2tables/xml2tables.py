@@ -69,7 +69,7 @@ def agrupaCoautores(lista):
         autores.append( (aut_nome, aut_ordem) )
     autores.sort(key=operator.itemgetter(1))
     nomes = ""
-    for (a,b) in autores:
+    for (a,_) in autores:
         nomes += a + "; "
     nomes = nomes.rstrip("; ")
 
