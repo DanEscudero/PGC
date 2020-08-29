@@ -18,8 +18,8 @@ def main():
     print('Height: ', t.height)
 
     total = t.recursiveCount()
-    # t_max = t.getMaxChildren()
-    t_min = t.getMinChildren()
+    # t_max = t.maxChildren
+    t_min = t.minChildren
     print(t_min)
 
     # print('T:      ', total)

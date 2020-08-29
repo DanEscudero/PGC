@@ -1,6 +1,6 @@
 import functools
 import itertools
-from util import cleanTerm
+from util import cleanTerm, invLerp
 
 SEPARATOR = ' $sep$ '
 
@@ -8,11 +8,21 @@ SEPARATOR = ' $sep$ '
 class Node(object):
     def __init__(self, value, seq=0, parent=None):
         self.value = value
-        # keep clean term can make searches faster down the way
-        self.clearTermTokens = cleanTerm(value)
         self.parent = parent
         self.children = []
         self.seq = str(seq)
+
+        self.__freezed = False
+
+        self.__count = None
+        self.__height = None
+        self.__siblings = None
+        self.__minChildren = None
+        self.__maxChildren = None
+        self.__recursiveCount = None
+
+        # keep clean term can make searches faster down the way
+        self.cleanTermTokens = cleanTerm(value)
 
     def __str__(self):
         if (self.parent == None):
@@ -26,6 +36,85 @@ class Node(object):
             (', ').join(map(lambda x: x.value, self.children)) + '\n'
         return s
 
+    @property
+    def count(self):
+        if (self.__freezed):
+            return self.__count
+
+        return len(self.children)
+
+    @property
+    def siblings(self):
+        if (self.__freezed):
+            return self.__siblings
+
+        if (self.parent == None):
+            return 1
+        else:
+            return self.parent.count
+
+    @property
+    def height(self):
+        if (self.__freezed):
+            return self.__height
+
+        if not self.count:
+            return 0
+
+        maxHeight = 0
+        for child in self.children:
+            maxHeight = max(maxHeight, child.height)
+
+        return 1 + maxHeight
+
+    @property
+    def minChildren(self):
+        if (self.__freezed):
+            return self.__minChildren
+
+        children = list(map(lambda x: x.minChildren, self.children))
+        children.append({"count": self.count, "node": self})
+
+        return min(children, key=lambda x: x['count'])
+
+    @property
+    def maxChildren(self):
+        if (self.__freezed):
+            return self.__maxChildren
+
+        children = list(map(lambda x: x.maxChildren, self.children))
+        children.append({"count": self.count, "node": self})
+
+        return max(children, key=lambda x: x['count'])
+
+    # Freezing node saves all properties, so it has constant time to access.
+    # Otherwise, time required to calculate is significantly increased
+    def freeze(self):
+        self.__freezed = True
+
+        self.__count = self.count
+        self.__height = self.height
+        self.__siblings = self.siblings
+        self.__minChildren = self.minChildren
+        self.__maxChildren = self.maxChildren
+        self.__recursiveCount = self.recursiveCount()
+
+        for child in self.children:
+            child.freeze()
+
+    def unfreeze(self):
+        self.__freezed = False
+
+        self.__count = None
+        self.__height = None
+        self.__siblings = None
+        self.__minChildren = None
+        self.__maxChildren = None
+        self.__recursiveCount = None
+
+        for child in self.children:
+            child.unfreeze()
+
     def findNode(self, value, seq):
         if (str(self.seq) == str(seq) and self.value == value):
             return self
@@ -37,61 +126,39 @@ class Node(object):
 
         return None
 
-    # terms comparison function, returns bool
-    @staticmethod
-    def termMatch(clean_searched_term, tree_clean):
-        def join(p): return (' ').join(p)
-        def perms(term): return list(map(join, itertools.permutations(term)))
+    def getNeighborhood(self):
+        return [self]
 
-        # supposing tree_clean is ['a', 'b', 'c'], tree_permutations is ['a b c', 'a c b', 'b a c', ...]
-        tree_permutations = perms(tree_clean)
-        search_permutations = perms(clean_searched_term)
+    def getNeighborhoodWithScores(self):
+        neighborhood = self.getNeighborhood()
+        return map(lambda x: (x, x.getScore()), neighborhood)
 
-        # check if any permutation of one of the terms is a substring of another one
-        for tree_permutation in tree_permutations:
-            for search_permutation in search_permutations:
-                if (tree_permutation in search_permutation or search_permutation in tree_permutation):
-                    return True
+    def getScore(self):
+        return (self.height, self.siblings, self.getSiblingScore())
 
-        return False
+    def getSiblingScore(self):
+        minChildren = self.minChildren['count']
+        maxChildren = self.maxChildren['count']
+        return invLerp(minChildren, maxChildren, self.siblings)
 
-    # must return list
-    @staticmethod
-    def getNeighborhood(t):
-        return [t, t.parent] + t.children
+    def matches(self, searched):
+        return Node.termMatch(searched, self.cleanTermTokens)
 
     # search_clean is assumed to have passed through cleanTerm
-    def lookForTerm(self, clean_searched_term, accumulated=[]):
-        if (Node.termMatch(clean_searched_term, self.clearTermTokens)):
-            neighborhood = Node.getNeighborhood(self)
+    def lookForTerm(self, cleanSearchedTerm, accumulated=[]):
+        if (self.matches(cleanSearchedTerm)):
+            neighborhood = self.getNeighborhoodWithScores()
             accumulated += neighborhood
 
         for child in self.children:
-            child.lookForTerm(clean_searched_term, accumulated)
+            child.lookForTerm(cleanSearchedTerm, accumulated)
 
-    @property
-    def count(self):
-        return len(self.children)
+        return accumulated
 
     def recursiveCount(self, acc=1):
+        if (self.__freezed):
+            return self.__recursiveCount
         return acc + functools.reduce(lambda a, b: a+b, map(lambda x: x.recursiveCount(acc=0), self.children), self.count)
-
-    @property
-    def height(self):
-        if not self.count:
-            return 0
-
-        maxHeight = 0
-        for child in self.children:
-            maxHeight = max(maxHeight, child.height)
-
-        return 1 + maxHeight
-
-    def getMaxChildren(self):
-        children = list(map(lambda x: x.getMaxChildren(), self.children))
-        children.append({"count": self.count, "node": self})
-
-        return max(children, key=lambda x: x['count'])
 
     def countInLevel(self, level):
         if (self.height == level):
@@ -103,22 +170,10 @@ class Node(object):
 
         return child_sum
 
-    def getAvgChildren(self):
-        return self.countInLevel(2)
-
-    def getMinChildren(self):
-        children = list(map(lambda x: x.getMinChildren(), self.children))
-        children.append({"count": self.count, "node": self})
-
-        return min(children, key=lambda x: x['count'])
-
-    def getChildrenPerLevel(self):
-        return -1
-
-    def countChildrenUpToLevel(self, l):
-        return -1
-
     def addChild(self, obj):
+        if (self.__freezed):
+            raise Exception('Cant modify freezed tree!')
+
         for child in self.children:
             if (child.value == obj.value):
                 return
@@ -187,3 +242,20 @@ class Node(object):
 
         newNode = Node(name, seq, parent)
         parent.addChild(newNode)
+
+    @staticmethod
+    def termMatch(clean_searched_term, tree_clean):
+        def join(p): return (' ').join(p)
+        def perms(term): return list(map(join, itertools.permutations(term)))
+
+        # supposing tree_clean is ['a', 'b', 'c'], tree_permutations is ['a b c', 'a c b', 'b a c', ...]
+        tree_permutations = perms(tree_clean)
+        search_permutations = perms(clean_searched_term)
+
+        # check if any permutation of one of the terms is a substring of another one
+        for tree_permutation in tree_permutations:
+            for search_permutation in search_permutations:
+                if (tree_permutation in search_permutation or search_permutation in tree_permutation):
+                    return True
+
+        return False
