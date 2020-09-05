@@ -1,5 +1,6 @@
 import json
 import requests
+import itertools
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
@@ -14,6 +15,11 @@ def pp_json(json_thing, sort=True, indents=4):
 
 def clamp(x, minValue=0, maxValue=1):
     return min(maxValue, max(minValue, x))
+
+
+def joinPermutations(term, joinChar=' '):
+    def join(p): return (joinChar).join(p)
+    return list(map(join, itertools.permutations(term)))
 
 
 def invLerp(minValue, maxValue, x):

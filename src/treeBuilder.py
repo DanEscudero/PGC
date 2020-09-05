@@ -1,5 +1,4 @@
 import sys
-import os.path
 from Node import Node
 from util import list_subcategories, parse_args
 
@@ -7,43 +6,14 @@ from util import list_subcategories, parse_args
 DEFAULT_QUERY_LEVEL = 3
 DEFAULT_QUERY_PARAMETER = 'Mathematics'
 DEFAULT_QUERY_PARAMETER = 'max'
-seq = 0
-
-
-def buildTree(node, level, queryCMLimit):
-    global seq
-    subcategories = list_subcategories(node.value, queryCMLimit)
-    for subcategory in subcategories:
-        seq = seq + 1
-        node.addChild(Node(subcategory, seq, node))
-
-    if (level > 1):
-        for child in node.children:
-            buildTree(child, level-1, queryCMLimit)
-
-
-def getFilePath(state):
-    (queryParameter, _, queryLevel, queryCMLimit) = state
-    return '../out/' + queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
-
-
-def shouldBuildTree(state):
-    return not os.path.isfile(getFilePath(state))
 
 
 def main():
     # Read parameters from CLI
     state = parse_args(sys.argv)
-    filepath = getFilePath(state)
+    (queryParameter, _, _, _) = state
 
-    (queryParameter, _, queryLevel, queryCMLimit) = state
-
-    if (shouldBuildTree(state)):
-        t = Node(queryParameter)
-        buildTree(t, queryLevel, queryCMLimit)
-        t.dumpToFile(open(filepath, 'w'))
-    else:
-        t = Node.fromFile(filepath)
+    t = Node.getFromInputState(state)
 
     print('Tree:   ', queryParameter)
     print('Height: ', t.height)

@@ -1,6 +1,6 @@
+import os.path
 import functools
-import itertools
-from util import cleanTerm, invLerp
+from util import cleanTerm, invLerp, joinPermutations, list_subcategories
 
 SEPARATOR = ' $sep$ '
 
@@ -11,6 +11,8 @@ class Node(object):
         self.parent = parent
         self.children = []
         self.seq = str(seq)
+
+        self.cleanSearchedTerm = None
 
         self.__freezed = False
 
@@ -90,14 +92,14 @@ class Node(object):
     # Freezing node saves all properties, so it has constant time to access.
     # Otherwise, time required to calculate is significantly increased
     def freeze(self):
-        self.__freezed = True
-
         self.__count = self.count
         self.__height = self.height
         self.__siblings = self.siblings
         self.__minChildren = self.minChildren
         self.__maxChildren = self.maxChildren
         self.__recursiveCount = self.recursiveCount()
+
+        self.__freezed = True
 
         for child in self.children:
             child.freeze()
@@ -127,15 +129,18 @@ class Node(object):
         return None
 
     def getNeighborhood(self):
-        return [self]
+        # TODO: modify as needed! Add children and parent
+        return [self, self.parent] + self.children
 
     def getNeighborhoodWithScores(self):
-        neighborhood = self.getNeighborhood()
-        return map(lambda x: (x, x.getScore()), neighborhood)
+        def assocNodeAndScore(node): return (node, node.getScore())
+        return map(assocNodeAndScore, self.getNeighborhood())
 
     def getScore(self):
-        return (self.height, self.siblings, self.getSiblingScore())
+        # self.cleanSearchedTerm
+        return (self.height, self.siblings, self.getSiblingScore(), self.getTermMatchScore())
 
+    # linear interpolation considering node's number of children between min and max children
     def getSiblingScore(self):
         minChildren = self.minChildren['count']
         maxChildren = self.maxChildren['count']
@@ -144,16 +149,27 @@ class Node(object):
     def matches(self, searched):
         return Node.termMatch(searched, self.cleanTermTokens)
 
-    # search_clean is assumed to have passed through cleanTerm
-    def lookForTerm(self, cleanSearchedTerm, accumulated=[]):
-        if (self.matches(cleanSearchedTerm)):
-            neighborhood = self.getNeighborhoodWithScores()
-            accumulated += neighborhood
+    def setCurrentlySearchedTerm(self, cleanSearchedTerm):
+        self.cleanSearchedTerm = cleanSearchedTerm
 
         for child in self.children:
-            child.lookForTerm(cleanSearchedTerm, accumulated)
+            child.setCurrentlySearchedTerm(cleanSearchedTerm)
+
+    def lookForCurrentlySearchedTerm(self, accumulated=[]):
+        self.assertLookingForSomething()
+
+        if (self.matches(self.cleanSearchedTerm)):
+            accumulated += self.getNeighborhoodWithScores()
+
+        for child in self.children:
+            child.lookForCurrentlySearchedTerm(accumulated)
 
         return accumulated
+
+    def assertLookingForSomething(self):
+        if (self.cleanSearchedTerm == None):
+            msg = 'This node is currently looking for nothing! Make sure it\'s looking for something first.'
+            raise Exception(msg)
 
     def recursiveCount(self, acc=1):
         if (self.__freezed):
@@ -244,18 +260,68 @@ class Node(object):
         parent.addChild(newNode)
 
     @staticmethod
-    def termMatch(clean_searched_term, tree_clean):
-        def join(p): return (' ').join(p)
-        def perms(term): return list(map(join, itertools.permutations(term)))
-
-        # supposing tree_clean is ['a', 'b', 'c'], tree_permutations is ['a b c', 'a c b', 'b a c', ...]
-        tree_permutations = perms(tree_clean)
-        search_permutations = perms(clean_searched_term)
+    def termMatch(cleanSearchedTerm, treeTermTokens):
+        # supposing treeTermTokens is ['a', 'b', 'c'], treePermutations is ['a b c', 'a c b', 'b a c', ...]
+        treePermutations = joinPermutations(treeTermTokens)
+        searchPermutations = joinPermutations(cleanSearchedTerm)
 
         # check if any permutation of one of the terms is a substring of another one
-        for tree_permutation in tree_permutations:
-            for search_permutation in search_permutations:
-                if (tree_permutation in search_permutation or search_permutation in tree_permutation):
+        for treePermutation in treePermutations:
+            for searchPermutation in searchPermutations:
+                if (treePermutation in searchPermutation or searchPermutation in treePermutation):
                     return True
 
         return False
+
+    def getTermMatchScore(self):
+        treePermutations = joinPermutations(self.cleanTermTokens)
+        searchPermutations = joinPermutations(self.cleanSearchedTerm)
+
+        possibleMatches = len(treePermutations) * len(searchPermutations)
+
+        matchPermutations = 0
+        for treePermutation in treePermutations:
+            for searchPermutation in searchPermutations:
+                if (treePermutation in searchPermutation or searchPermutation in treePermutation):
+                    matchPermutations += 1
+
+        return matchPermutations / possibleMatches
+
+    @staticmethod
+    def getFilePath(state):
+        (queryParameter, _, queryLevel, queryCMLimit) = state
+        return '../out/' + queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
+
+    @staticmethod
+    def shouldBuildTree(state):
+        return not os.path.isfile(Node.getFilePath(state))
+
+    @staticmethod
+    def buildTree(node, level, queryCMLimit):
+        global seq
+        subcategories = list_subcategories(node.value, queryCMLimit)
+        for subcategory in subcategories:
+            seq = seq + 1
+            node.addChild(Node(subcategory, seq, node))
+
+        if (level > 1):
+            for child in node.children:
+                Node.buildTree(child, level-1, queryCMLimit)
+
+    @staticmethod
+    def getFromInputState(state):
+        filepath = Node.getFilePath(state)
+        (queryParameter, _, queryLevel, queryCMLimit) = state
+
+        if (Node.shouldBuildTree(state)):
+            print('Starting build tree...')
+            global seq
+            seq = 0
+            t = Node(queryParameter)
+            Node.buildTree(t, queryLevel, queryCMLimit)
+            t.dumpToFile(open(filepath, 'w'))
+            print('Tree built!')
+        else:
+            t = Node.fromFile(filepath)
+
+        return t

@@ -1,5 +1,4 @@
 import sys
-from treeBuilder import shouldBuildTree, getFilePath
 from util import parse_args, cleanTerm, pp_json
 from Node import Node
 
@@ -20,24 +19,27 @@ def mapTermsToDict(terms):
 
 def main():
     state = parse_args(sys.argv)
-    (_, specificTerm, _, _) = state
+    (_, searchedTerm, _, _) = state
+    cleanSearchedTerm = cleanTerm(searchedTerm)
 
-    if (shouldBuildTree(state)):
-        raise Exception('Tree should be built first!')
+    # t = Node('Algebra')
+    # t.setCurrentlySearchedTerm(cleanSearchedTerm)
+    # x = t.getTermMatchScore()
+    # print(x)
+    t = Node.getFromInputState(state)
 
-    t = Node.fromFile(getFilePath(state))
+    # TODO: benchmark freeze, to make compare it's effectiveness
+    # t.freeze()
 
-    similarTerms = t.lookForTerm(cleanTerm(specificTerm))
+    t.setCurrentlySearchedTerm(cleanSearchedTerm)
+    similarTerms = t.lookForCurrentlySearchedTerm()
 
     if (len(similarTerms) == 0):
         print('not found!')
 
-    scoresPerTerm = mapTermsToDict(similarTerms)
-    pp_json(scoresPerTerm)
-
     for term in similarTerms:
-        (value, (h, s)) = term
-        print(value.value, h, s)
+        (node, (h, s, x, k)) = term
+        print(node.value, x, k)
 
 
 if __name__ == "__main__":
