@@ -1,11 +1,13 @@
 import os.path
 import functools
-from util import cleanTerm, invLerp, joinPermutations, list_subcategories
-
-SEPARATOR = ' $sep$ '
+import jellyfish
+from util import cleanTerm, invLerp, list_subcategories
 
 
 class Node(object):
+    SEPARATOR = ' $sep$ '
+    SIMILARITY_LIMIT = 0.67
+
     def __init__(self, value, seq=0, parent=None):
         self.value = value
         self.parent = parent
@@ -138,13 +140,7 @@ class Node(object):
 
     def getScore(self):
         # self.cleanSearchedTerm
-        return (self.height, self.siblings, self.getSiblingScore(), self.getTermMatchScore())
-
-    # linear interpolation considering node's number of children between min and max children
-    def getSiblingScore(self):
-        minChildren = self.minChildren['count']
-        maxChildren = self.maxChildren['count']
-        return invLerp(minChildren, maxChildren, self.siblings)
+        return (self.height, self.siblings, Node.getSiblingScore(self), Node.getTermMatchScore(self.cleanTermTokens, self.cleanSearchedTerm))
 
     def matches(self, searched):
         return Node.termMatch(searched, self.cleanTermTokens)
@@ -205,13 +201,13 @@ class Node(object):
 
     def getParentAsString(self):
         if (self.parent == None):
-            return SEPARATOR
+            return Node.SEPARATOR
         else:
-            return self.parent.value + SEPARATOR + str(self.parent.seq)
+            return self.parent.value + Node.SEPARATOR + str(self.parent.seq)
 
     def writeSelfToFile(self, fp):
         args = [self.value, str(self.seq), self.getParentAsString()]
-        line = SEPARATOR.join(args)
+        line = Node.SEPARATOR.join(args)
 
         fp.write(line + '\n')
 
@@ -232,7 +228,7 @@ class Node(object):
 
     @staticmethod
     def unpatchLine(line):
-        return line.split(SEPARATOR)
+        return line.split(Node.SEPARATOR)
 
     @staticmethod
     def handleInvalidTree(t):
@@ -261,31 +257,21 @@ class Node(object):
 
     @staticmethod
     def termMatch(cleanSearchedTerm, treeTermTokens):
-        # supposing treeTermTokens is ['a', 'b', 'c'], treePermutations is ['a b c', 'a c b', 'b a c', ...]
-        treePermutations = joinPermutations(treeTermTokens)
-        searchPermutations = joinPermutations(cleanSearchedTerm)
+        score = Node.getTermMatchScore(cleanSearchedTerm, treeTermTokens)
+        return score > Node.SIMILARITY_LIMIT
 
-        # check if any permutation of one of the terms is a substring of another one
-        for treePermutation in treePermutations:
-            for searchPermutation in searchPermutations:
-                if (treePermutation in searchPermutation or searchPermutation in treePermutation):
-                    return True
+    # linear interpolation considering node's number of children between min and max children
+    @staticmethod
+    def getSiblingScore(node):
+        minChildren = node.minChildren['count']
+        maxChildren = node.maxChildren['count']
+        return invLerp(minChildren, maxChildren, node.siblings)
 
-        return False
-
-    def getTermMatchScore(self):
-        treePermutations = joinPermutations(self.cleanTermTokens)
-        searchPermutations = joinPermutations(self.cleanSearchedTerm)
-
-        possibleMatches = len(treePermutations) * len(searchPermutations)
-
-        matchPermutations = 0
-        for treePermutation in treePermutations:
-            for searchPermutation in searchPermutations:
-                if (treePermutation in searchPermutation or searchPermutation in treePermutation):
-                    matchPermutations += 1
-
-        return matchPermutations / possibleMatches
+    @staticmethod
+    def getTermMatchScore(cleanTermTokens, cleanSearchedTerm):
+        s1 = (' ').join(cleanTermTokens)
+        s2 = (' ').join(cleanSearchedTerm)
+        return jellyfish.jaro_winkler_similarity(s1, s2)
 
     @staticmethod
     def getFilePath(state):
@@ -320,8 +306,9 @@ class Node(object):
             t = Node(queryParameter)
             Node.buildTree(t, queryLevel, queryCMLimit)
             t.dumpToFile(open(filepath, 'w'))
-            print('Tree built!')
         else:
+            print('Reading tree from file...')
             t = Node.fromFile(filepath)
 
+        print('Tree built!')
         return t

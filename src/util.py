@@ -17,11 +17,6 @@ def clamp(x, minValue=0, maxValue=1):
     return min(maxValue, max(minValue, x))
 
 
-def joinPermutations(term, joinChar=' '):
-    def join(p): return (joinChar).join(p)
-    return list(map(join, itertools.permutations(term)))
-
-
 def invLerp(minValue, maxValue, x):
     if (minValue == maxValue):
         return 1

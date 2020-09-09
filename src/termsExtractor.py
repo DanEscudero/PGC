@@ -1,6 +1,9 @@
 import sys
-from util import parse_args, cleanTerm, pp_json
+import itertools
+import jellyfish
+import numpy as np
 from Node import Node
+from util import parse_args, cleanTerm, pp_json
 
 
 def mapTermsToDict(terms):
@@ -9,10 +12,7 @@ def mapTermsToDict(terms):
         (node, score) = term
         key = node.value
 
-        if (key in d):
-            d[key].append(score)
-        else:
-            d[key] = [score]
+        d[key] = score
 
     return d
 
@@ -22,10 +22,6 @@ def main():
     (_, searchedTerm, _, _) = state
     cleanSearchedTerm = cleanTerm(searchedTerm)
 
-    # t = Node('Algebra')
-    # t.setCurrentlySearchedTerm(cleanSearchedTerm)
-    # x = t.getTermMatchScore()
-    # print(x)
     t = Node.getFromInputState(state)
 
     # TODO: benchmark freeze, to make compare it's effectiveness
@@ -37,9 +33,18 @@ def main():
     if (len(similarTerms) == 0):
         print('not found!')
 
-    for term in similarTerms:
-        (node, (h, s, x, k)) = term
-        print(node.value, x, k)
+    similarTerms = set(similarTerms)
+    similarTerms = mapTermsToDict(similarTerms)
+    similarTerms = sorted(similarTerms.items(),
+                          key=lambda x: x[1][3], reverse=True)
+    for value in similarTerms:
+        (term, (h, s, siblingScore, termScore)) = value
+        print(term, round(termScore, 2))
+        # print(' siblingScore:', siblingScore)
+        # print('    termScore:', termScore)
+        # print('')
+
+    print(len(similarTerms))
 
 
 if __name__ == "__main__":
