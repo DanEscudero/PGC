@@ -1,6 +1,6 @@
 import os.path
 import functools
-import jellyfish
+import Levenshtein
 from util import cleanTerm, invLerp, list_subcategories
 
 
@@ -131,7 +131,6 @@ class Node(object):
         return None
 
     def getNeighborhood(self):
-        # TODO: modify as needed! Add children and parent
         return [self, self.parent] + self.children
 
     def getNeighborhoodWithScores(self):
@@ -139,11 +138,10 @@ class Node(object):
         return map(assocNodeAndScore, self.getNeighborhood())
 
     def getScore(self):
-        # self.cleanSearchedTerm
-        return (self.height, self.siblings, Node.getSiblingScore(self), Node.getTermMatchScore(self.cleanTermTokens, self.cleanSearchedTerm))
-
-    def matches(self, searched):
-        return Node.termMatch(searched, self.cleanTermTokens)
+        return (
+            Node.getNeighborhoodScore(self),
+            Node.getTermScore(self)
+        )
 
     def setCurrentlySearchedTerm(self, cleanSearchedTerm):
         self.cleanSearchedTerm = cleanSearchedTerm
@@ -154,7 +152,8 @@ class Node(object):
     def lookForCurrentlySearchedTerm(self, accumulated=[]):
         self.assertLookingForSomething()
 
-        if (self.matches(self.cleanSearchedTerm)):
+        matches = Node.isGood(self.cleanSearchedTerm, self.cleanTermTokens)
+        if (matches):
             accumulated += self.getNeighborhoodWithScores()
 
         for child in self.children:
@@ -205,11 +204,109 @@ class Node(object):
         else:
             return self.parent.value + Node.SEPARATOR + str(self.parent.seq)
 
+    def getGoodNodes(self, goodNodes=[]):
+        if (Node.isGood(self)):
+            goodNodes.append((self, []))
+
+        for child in self.children:
+            child.getGoodNodes(goodNodes)
+
+        return goodNodes
+
     def writeSelfToFile(self, fp):
         args = [self.value, str(self.seq), self.getParentAsString()]
         line = Node.SEPARATOR.join(args)
 
         fp.write(line + '\n')
+
+    def isAncestor(self, node):
+        if (self == node.parent):
+            return True
+
+        for child in self.children:
+            if (child.isAncestor(node)):
+                return True
+
+        return False
+
+    @staticmethod
+    def getLowestCommonAncestor(node1, node2):
+        if (node1 == node2):
+            return node1
+
+        if (node1.isAncestor(node2)):
+            return node1
+
+        if (node2.isAncestor(node1)):
+            return node2
+
+        ancestor = node1
+        while(True):
+            if (ancestor.isAncestor(node2)):
+                return ancestor
+
+            ancestor = ancestor.parent
+            if (ancestor == None):
+                break
+
+        return None
+
+    def isRoot(self):
+        return self.parent == None
+
+    # TODO: add a root pointer in every node to make it constant!
+    def getRoot(self):
+        current = self
+        while(not current.isRoot()):
+            current = current.parent
+
+        return current
+
+    @staticmethod
+    def getSimilarityBetween(node1, node2):
+        # https://elar.urfu.ru/bitstream/10995/3713/2/RuSSIR_2011_07.pdf 3.3
+        root = node1.getRoot()
+        lca = Node.getLowestCommonAncestor(node1, node2)
+        dist = Node.getDistanceBetween
+
+        d = dist(lca, root)
+        num = 1 + d
+        den = 1 + d + dist(node1, lca) + dist(node2, lca)
+        return num / den
+
+    @staticmethod
+    def getDistanceBetween(node1, node2):
+        lca = Node.getLowestCommonAncestor(node1, node2)
+
+        d1 = Node.getDistanceToRoot(node1)
+        d2 = Node.getDistanceToRoot(node2)
+        lcaDist = Node.getDistanceToRoot(lca)
+
+        # https://www.geeksforgeeks.org/find-distance-between-two-nodes-of-a-binary-tree/
+        return d1 + d2 - 2 * lcaDist
+
+    @staticmethod
+    def combineScores(values):
+        combined = []
+        for value in values:
+            (node, scores) = value
+            score = scores[0] * scores[1]
+            combined.append((node.value, score))
+
+        return combined
+
+    @staticmethod
+    def getDistanceToRoot(node, dist=0):
+        if (node.parent == None):
+            return dist
+
+        return Node.getDistanceToRoot(node.parent, dist+1)
+
+    @staticmethod
+    def addScores(values, scoreCalculator):
+        for value in values:
+            (node, scores) = value
+            scores.append(scoreCalculator(node))
 
     @staticmethod
     def fromFile(filepath):
@@ -256,22 +353,19 @@ class Node(object):
         parent.addChild(newNode)
 
     @staticmethod
-    def termMatch(cleanSearchedTerm, treeTermTokens):
-        score = Node.getTermMatchScore(cleanSearchedTerm, treeTermTokens)
+    def getNeighborhoodScore(node):
+        return 0
+
+    @staticmethod
+    def getTermScore(node):
+        s1 = (' ').join(node.cleanSearchedTerm)
+        s2 = (' ').join(node.cleanTermTokens)
+        return Levenshtein.ratio(s1, s2)
+
+    @staticmethod
+    def isGood(node):
+        score = Node.getTermScore(node)
         return score > Node.SIMILARITY_LIMIT
-
-    # linear interpolation considering node's number of children between min and max children
-    @staticmethod
-    def getSiblingScore(node):
-        minChildren = node.minChildren['count']
-        maxChildren = node.maxChildren['count']
-        return invLerp(minChildren, maxChildren, node.siblings)
-
-    @staticmethod
-    def getTermMatchScore(cleanTermTokens, cleanSearchedTerm):
-        s1 = (' ').join(cleanTermTokens)
-        s2 = (' ').join(cleanSearchedTerm)
-        return jellyfish.jaro_winkler_similarity(s1, s2)
 
     @staticmethod
     def getFilePath(state):
