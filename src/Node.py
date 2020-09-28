@@ -1,7 +1,7 @@
 import os.path
 import functools
 import Levenshtein
-from util import cleanTerm, invLerp, list_subcategories
+from util import cleanTerm, list_subcategories
 
 
 class Node(object):
@@ -131,7 +131,11 @@ class Node(object):
         return None
 
     def getNeighborhood(self):
-        return [self, self.parent] + self.children
+        neighbors = [self] + self.children
+        if self.parent != None:
+            neighbors.append(self.parent)
+
+        return neighbors
 
     def getNeighborhoodWithScores(self):
         def assocNodeAndScore(node): return (node, node.getScore())
@@ -206,7 +210,7 @@ class Node(object):
 
     def getGoodNodes(self, goodNodes=[]):
         if (Node.isGood(self)):
-            goodNodes.append((self, []))
+            goodNodes.append(self)
 
         for child in self.children:
             child.getGoodNodes(goodNodes)
@@ -301,6 +305,10 @@ class Node(object):
             return dist
 
         return Node.getDistanceToRoot(node.parent, dist+1)
+
+    @staticmethod
+    def initializeScores(nodes):
+        return list(map(lambda x: (x, []), nodes))
 
     @staticmethod
     def addScores(values, scoreCalculator):

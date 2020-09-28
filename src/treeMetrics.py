@@ -2,7 +2,6 @@ import sys
 from treeBuilder import shouldBuildTree, getFilePath
 from util import parse_args
 from Node import Node
-import random
 
 
 def main():
@@ -17,7 +16,7 @@ def main():
     print('Tree:   ', queryParameter)
     print('Height: ', t.height)
 
-    total = t.recursiveCount()
+    # total = t.recursiveCount()
     # t_max = t.maxChildren
     t_min = t.minChildren
     print(t_min)

@@ -2,11 +2,6 @@ import sys
 from Node import Node
 from util import list_subcategories, parse_args
 
-# Defaults
-DEFAULT_QUERY_LEVEL = 3
-DEFAULT_QUERY_PARAMETER = 'Mathematics'
-DEFAULT_QUERY_PARAMETER = 'max'
-
 
 def main():
     # Read parameters from CLI

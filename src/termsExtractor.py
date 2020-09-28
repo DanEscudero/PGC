@@ -1,8 +1,6 @@
 import sys
-import itertools
-import numpy as np
 from Node import Node
-from util import parse_args, cleanTerm, pp_json
+from util import parse_args, cleanTerm
 
 
 def mapTermsToDict(terms):
@@ -31,8 +29,19 @@ def getBestNode(values):
 
 
 def extendWithNeighborhood(nodes):
-    # TODO:
-    return []
+    clean = []
+    for node in nodes:
+        clean += node.getNeighborhood()
+
+    return clean
+
+
+def sumarizeAndOrderNodes(nodesWithScores):
+    return sorted(
+        nodesWithScores.items(),
+        key=lambda x: sum(x[1]),
+        reverse=True
+    )
 
 
 def main():
@@ -49,17 +58,19 @@ def main():
     goodNodes = t.getGoodNodes()
     goodNodes = extendWithNeighborhood(goodNodes)
 
+    if (len(goodNodes) == 0):
+        print('not found!')
+
+    goodNodes = Node.initializeScores(goodNodes)
     Node.addScores(goodNodes, Node.getTermScore)
     bestNode = getBestNode(goodNodes)
 
     Node.addScores(goodNodes, lambda x: Node.getSimilarityBetween(x, bestNode))
     goodNodes = Node.combineScores(goodNodes)
 
-    if (len(goodNodes) == 0):
-        print('not found!')
-
-    goodNodes = mapTermsToDict(goodNodes)
-    for item in goodNodes.items():
+    dictNodes = mapTermsToDict(goodNodes)
+    sortedNodes = sumarizeAndOrderNodes(dictNodes)
+    for item in sortedNodes:
         (term, scores) = item
         print(term)
         for score in scores:

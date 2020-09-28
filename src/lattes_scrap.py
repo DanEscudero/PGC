@@ -1,5 +1,4 @@
 import csv
-from util import pp_json
 
 if __name__ == '__main__':
     path = '../../tar/BD-Lattes---nomes-e-caracteristicas---doutores.csv'

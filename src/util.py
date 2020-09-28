@@ -1,6 +1,5 @@
 import json
 import requests
-import itertools
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
@@ -13,18 +12,7 @@ def pp_json(json_thing, sort=True, indents=4):
     return None
 
 
-def clamp(x, minValue=0, maxValue=1):
-    return min(maxValue, max(minValue, x))
-
-
-def invLerp(minValue, maxValue, x):
-    if (minValue == maxValue):
-        return 1
-    return clamp((x - minValue) / (maxValue - minValue))
-
 # Converts to snake case, with letters in lower case, except for the first one
-
-
 def format_field(field):
     return field.replace(' ', '_').lower().capitalize()
 
