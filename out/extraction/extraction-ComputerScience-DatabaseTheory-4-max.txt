@@ -1,0 +1,384 @@
+Reading tree from file...
+Tree built!
+Database theory
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+
+Database algorithms
+	 0.29313540260908677
+	 0.6595546558704453
+	 0.6595546558704453
+	 0.29313540260908677
+
+Database researchers
+	 0.6475
+	 0.6475
+	 0.14388888888888887
+
+Database models
+	 0.6563636363636364
+	 0.6563636363636364
+
+Database constraints
+	 0.6475
+	 0.6475
+
+Database normalization
+	 0.6393181818181818
+	 0.6393181818181818
+
+Abstract machines
+	 0.22832244008714592
+	 0.22832244008714592
+	 0.22832244008714592
+	 0.22832244008714592
+	 0.22832244008714592
+
+Data security
+	 0.3388717948717949
+	 0.3388717948717949
+	 0.3388717948717949
+
+Data synchronization
+	 0.2234006734006734
+	 0.09574314574314574
+	 0.09574314574314574
+	 0.09574314574314574
+	 0.09574314574314574
+	 0.1117003367003367
+
+Fault-tolerant computer systems
+	 0.22523297491039426
+	 0.09384707287933093
+	 0.09384707287933093
+	 0.09384707287933093
+	 0.09384707287933093
+	 0.11261648745519713
+
+Data unit
+	 0.22962962962962957
+	 0.22962962962962957
+	 0.0984126984126984
+	 0.0984126984126984
+
+Database security
+	 0.30362996480643534
+	 0.30362996480643534
+
+Type theory
+	 0.32242424242424245
+	 0.26868686868686864
+
+Data erasure
+	 0.28
+	 0.28
+
+Data structures
+	 0.2637037037037037
+	 0.2637037037037037
+
+Graph theory
+	 0.26
+	 0.26
+
+Computer arithmetic
+	 0.21058479532163743
+	 0.21058479532163743
+	 0.08774366471734892
+
+Machine learning
+	 0.23484126984126985
+	 0.23484126984126985
+
+Domain theory
+	 0.23000949667616333
+	 0.23000949667616333
+
+Database software stubs
+	 0.1426012634708287
+	 0.1426012634708287
+	 0.1426012634708287
+
+Models of computation
+	 0.20931216931216934
+	 0.20931216931216934
+
+Rewriting systems
+	 0.19331465919701216
+	 0.19331465919701216
+
+Algorithms
+	 0.1888888888888889
+	 0.1888888888888889
+
+Database software comparisons
+	 0.1188884678539851
+	 0.1188884678539851
+	 0.13870321249631595
+
+Subfields of computer science
+	 0.35840455840455837
+
+Database stubs
+	 0.17523809523809525
+	 0.17523809523809525
+
+Entity–relationship model
+	 0.34375757575757576
+
+Programming language theory
+	 0.2961840628507295
+
+Relational model
+	 0.2951190476190476
+
+Computer security
+	 0.2923202614379085
+
+Database index techniques
+	 0.2797777777777778
+
+Data erasure software
+	 0.27476190476190476
+
+Datasets in machine learning
+	 0.2742222222222222
+
+Join algorithms
+	 0.26
+
+Data centers
+	 0.12285714285714285
+	 0.12285714285714285
+
+Gate arrays
+	 0.09927849927849927
+	 0.138989898989899
+
+Network theory
+	 0.2368606701940035
+
+Chaos theory
+	 0.23641975308641974
+
+Algebraic graph theory
+	 0.23282828282828286
+
+Matroid theory
+	 0.23121693121693115
+
+Approximation theory
+	 0.22962962962962957
+
+Denotational semantics
+	 0.22949494949494953
+
+Bada software
+	 0.12310282310282311
+	 0.10551670551670551
+
+Bayesian networks
+	 0.22832244008714592
+
+Mathematics of computing
+	 0.226031746031746
+
+Hash based data structures
+	 0.2235042735042735
+
+Software comparisons
+	 0.10046296296296295
+	 0.12055555555555555
+
+Data protection
+	 0.21574074074074073
+
+Computer security software
+	 0.21504273504273505
+
+Bada (operating system)
+	 0.10680272108843537
+	 0.10680272108843537
+
+Computational fields of study
+	 0.21213675213675215
+
+Beta software
+	 0.10551670551670551
+	 0.10551670551670551
+
+Abstract data types
+	 0.2103313840155945
+
+Fault tolerance
+	 0.2074074074074074
+
+Combinatorial optimization
+	 0.1954700854700855
+
+DOS emulators
+	 0.09636752136752136
+	 0.09636752136752136
+
+Type systems
+	 0.1925925925925926
+
+Video games by company
+	 0.09468810916179335
+	 0.09468810916179335
+
+Type inference
+	 0.18783068783068782
+
+Numerical analysis
+	 0.18666666666666665
+
+Emulation software
+	 0.09197530864197531
+	 0.09197530864197531
+
+Logic in computer science
+	 0.18083694083694085
+
+Backup software
+	 0.17407407407407408
+
+Lambda calculus
+	 0.17333333333333334
+
+Computer access control
+	 0.1718733225979603
+
+Linux software
+	 0.08544973544973544
+	 0.08544973544973544
+
+Electronic waste
+	 0.17037037037037034
+
+Servers (computing)
+	 0.07886710239651415
+	 0.07886710239651415
+
+Information governance
+	 0.1506974506974507
+
+Carding (fraud)
+	 0.14643874643874644
+
+Polymorphism (computer science)
+	 0.14546615581098338
+
+Upcoming software
+	 0.0696078431372549
+	 0.0696078431372549
+
+Computer science stubs
+	 0.12492784992784993
+
+Software by operating system
+	 0.12064646464646465
+
+Adobe software
+	 0.11974506974506972
+
+Data management software
+	 0.11809523809523809
+
+Database-related software for Linux
+	 0.11806215290086258
+
+Data General
+	 0.11793650793650794
+
+Computer engineering
+	 0.11527777777777777
+
+Software stubs
+	 0.11079365079365078
+
+Software by company
+	 0.11055555555555555
+
+Filter theory
+	 0.10915750915750914
+
+Backup
+	 0.10740740740740741
+
+Data East video games
+	 0.09882498453927026
+
+Cathode ray tube
+	 0.09796176046176046
+
+Field-programmable gate arrays
+	 0.09646464646464645
+
+Lists of database management software
+	 0.09645969498910675
+
+Datamost games
+	 0.09622071050642479
+
+Application software
+	 0.09537037037037038
+
+Bada games
+	 0.09325396825396826
+
+Computer scientists by field of research
+	 0.09290849673202614
+
+Biological database stubs
+	 0.09259259259259257
+
+Display technology
+	 0.09197530864197531
+
+Computer memory
+	 0.09153439153439152
+
+Adobe Creative Suite
+	 0.0914141414141414
+
+Wikipedia categories named after operating systems
+	 0.08998316498316497
+
+Adobe Flash
+	 0.0897907647907648
+
+Adobe Flex
+	 0.08730158730158731
+
+Defunct computer hardware companies
+	 0.08624338624338623
+
+Macromedia software
+	 0.08538011695906432
+
+Cartoons animated with Adobe After Effects
+	 0.08364188364188363
+
+Adobe Photoshop
+	 0.08359788359788359
+
+Samsung software
+	 0.08197751322751322
+
+Electronic design
+	 0.07886710239651415
+
+Discontinued Adobe software
+	 0.07795414462081128
+
+Signal processing filter
+	 0.07387566137566137
+
+SyncML
+	 0.05873015873015873
+

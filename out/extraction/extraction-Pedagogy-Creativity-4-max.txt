@@ -1,0 +1,273 @@
+Reading tree from file...
+Tree built!
+Creativity
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 1.0
+	 0.4
+	 0.4
+	 0.4
+	 0.4
+	 0.4
+	 0.4
+	 0.4
+	 0.4
+	 0.4
+
+Creative works
+	 0.6300000000000001
+	 0.504
+	 0.6300000000000001
+	 0.6300000000000001
+	 0.28
+	 0.28
+
+Creativity journals
+	 0.6789473684210525
+	 0.6789473684210525
+	 0.3017543859649122
+	 0.3017543859649122
+
+Creativity Management
+	 0.6714285714285715
+	 0.6714285714285715
+	 0.2984126984126984
+	 0.2984126984126984
+
+Creativity techniques
+	 0.6714285714285715
+	 0.6714285714285715
+	 0.2984126984126984
+	 0.2984126984126984
+
+Creativity researchers
+	 0.6681818181818182
+	 0.6681818181818182
+	 0.296969696969697
+	 0.296969696969697
+
+Creativity and mental illness
+	 0.66
+	 0.66
+	 0.29333333333333333
+	 0.29333333333333333
+
+Books about creativity
+	 0.65625
+	 0.65625
+	 0.29166666666666663
+	 0.29166666666666663
+
+Creative writing programs
+	 0.639
+	 0.639
+	 0.284
+	 0.284
+
+Arts
+	 0.4291666666666667
+	 0.4291666666666667
+	 0.19074074074074077
+
+Works by nationality
+	 0.4223529411764706
+	 0.4223529411764706
+
+Intertextuality
+	 0.4345238095238095
+	 0.19312169312169308
+
+Improvisation
+	 0.43205128205128207
+	 0.19202279202279204
+
+Word play
+	 0.4083333333333333
+	 0.18148148148148147
+
+Abstraction
+	 0.38863636363636367
+	 0.17272727272727273
+
+Intellectual property law
+	 0.38785714285714284
+	 0.17238095238095236
+
+Stonecoast MFA alumni
+	 0.3845238095238096
+	 0.1708994708994709
+
+Archetypal pedagogy
+	 0.2915204678362573
+	 0.23321637426900585
+
+Neologisms
+	 0.35
+	 0.15555555555555553
+
+Archetypes
+	 0.2711111111111111
+	 0.2259259259259259
+
+Mathematical proofs
+	 0.34078947368421053
+	 0.15146198830409358
+
+Innovation
+	 0.325
+	 0.14444444444444443
+
+Artistic techniques
+	 0.3942105263157895
+
+Creative works in popular culture
+	 0.38666666666666666
+
+Educational psychology
+	 0.3791245791245791
+
+Psychology of creativity journals
+	 0.36666666666666664
+
+Advertisements
+	 0.35428571428571426
+
+Novels about art and creativity
+	 0.3495238095238095
+
+Unfinished creative works
+	 0.349
+
+Writers who committed suicide
+	 0.33885714285714286
+
+Works by setting
+	 0.33692307692307694
+
+Categories by work
+	 0.33333333333333326
+
+Fictional works
+	 0.3266666666666666
+
+Works by date
+	 0.32
+
+Books about computer and internet entrepreneurs
+	 0.31909909909909906
+
+Works by period of creation
+	 0.3180952380952381
+
+Works by topic
+	 0.3145454545454546
+
+Artists who committed suicide
+	 0.3102857142857143
+
+Works by city
+	 0.31
+
+Works by medium
+	 0.31
+
+826 National
+	 0.31
+
+International Writing Program
+	 0.3025615763546798
+
+Musicians who committed suicide
+	 0.29777777777777775
+
+Unreleased works
+	 0.2975
+
+Works adapted for other media
+	 0.291578947368421
+
+Works by ideology
+	 0.28714285714285714
+
+Versions of works
+	 0.28714285714285714
+
+Books about the arts
+	 0.27999999999999997
+
+Iowa Writers' Workshop
+	 0.27714285714285714
+
+Debut works
+	 0.27636363636363637
+
+Orphan works
+	 0.2733333333333333
+
+Works by creator
+	 0.27076923076923076
+
+Works by language
+	 0.26857142857142857
+
+Works published posthumously
+	 0.25857142857142856
+
+Slogans
+	 0.24857142857142858
+
+Intelligence
+	 0.24722222222222223
+
+Lost works
+	 0.23999999999999996
+
+Works by genre
+	 0.23818181818181816
+
+Works by source
+	 0.23666666666666664
+
+Genres
+	 0.20666666666666664
+
+Archetypal psychology
+	 0.191005291005291
+
+Reading (process)
+	 0.09259259259259259
+	 0.09259259259259259
+
+Literary archetypes
+	 0.18220551378446115
+
+Jungian archetypes
+	 0.17530864197530865
+
+Mythological archetypes
+	 0.151207729468599
+
+Educational theorists
+	 0.14325396825396827
+
+Educationalists
+	 0.1349206349206349
+
+Interactive geometry software
+	 0.09737274220032839
+
+Educational software
+	 0.0962962962962963
+
+Readability tests
+	 0.09621848739495797
+
+Literacy
+	 0.09603174603174602
+
