@@ -1,6 +1,6 @@
 import os.path
 import functools
-import Levenshtein
+from jellyfish import jaro_winkler_similarity
 from util import cleanTerm, list_subcategories
 
 
@@ -137,38 +137,11 @@ class Node(object):
 
         return neighbors
 
-    def getNeighborhoodWithScores(self):
-        def assocNodeAndScore(node): return (node, node.getScore())
-        return map(assocNodeAndScore, self.getNeighborhood())
-
-    def getScore(self):
-        return (
-            Node.getNeighborhoodScore(self),
-            Node.getTermScore(self)
-        )
-
     def setCurrentlySearchedTerm(self, cleanSearchedTerm):
         self.cleanSearchedTerm = cleanSearchedTerm
 
         for child in self.children:
             child.setCurrentlySearchedTerm(cleanSearchedTerm)
-
-    def lookForCurrentlySearchedTerm(self, accumulated=[]):
-        self.assertLookingForSomething()
-
-        matches = Node.isGood(self.cleanSearchedTerm, self.cleanTermTokens)
-        if (matches):
-            accumulated += self.getNeighborhoodWithScores()
-
-        for child in self.children:
-            child.lookForCurrentlySearchedTerm(accumulated)
-
-        return accumulated
-
-    def assertLookingForSomething(self):
-        if (self.cleanSearchedTerm == None):
-            msg = 'This node is currently looking for nothing! Make sure it\'s looking for something first.'
-            raise Exception(msg)
 
     def recursiveCount(self, acc=1):
         if (self.__freezed):
@@ -361,14 +334,10 @@ class Node(object):
         parent.addChild(newNode)
 
     @staticmethod
-    def getNeighborhoodScore(node):
-        return 0
-
-    @staticmethod
     def getTermScore(node):
         s1 = (' ').join(node.cleanSearchedTerm)
         s2 = (' ').join(node.cleanTermTokens)
-        return Levenshtein.ratio(s1, s2)
+        return jaro_winkler_similarity(s1, s2)
 
     @staticmethod
     def isGood(node):
