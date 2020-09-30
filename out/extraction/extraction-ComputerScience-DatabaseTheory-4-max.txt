@@ -1,5 +1,11 @@
 Reading tree from file...
 Tree built!
+
+Tree:				Computer science
+Height: 			4
+Childs per node:	max (500)
+Search term:	 	Database theory
+
 Database theory
 	 1.0
 	 1.0

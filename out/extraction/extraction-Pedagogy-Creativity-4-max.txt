@@ -1,5 +1,11 @@
 Reading tree from file...
 Tree built!
+
+Tree:				Pedagogy
+Height:				4
+Childs per node:	max (500)
+Search term:	 	Creativity
+
 Creativity
 	 1.0
 	 1.0

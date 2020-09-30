@@ -1,5 +1,11 @@
 Reading tree from file...
 Tree built!
+
+Tree:				Neuroscience
+Height:				4
+Childs per node:	max (500)
+Search term:	 	Substance abuse
+
 Substance abuse
 	 1.0
 	 0.1111111111111111

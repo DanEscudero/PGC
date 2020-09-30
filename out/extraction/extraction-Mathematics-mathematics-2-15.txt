@@ -1,5 +1,11 @@
 Reading tree from file...
 Tree built!
+
+Tree:				Mathematics
+Height: 			4
+Childs per node:	max (500)
+Search term:	 	Mathematics
+
 Mathematics
 	 0.9818181818181818
 	 0.9818181818181818
