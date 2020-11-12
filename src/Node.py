@@ -217,6 +217,7 @@ class Node(object):
         if (node2.isAncestor(node1)):
             return node2
 
+        # iterate upwards in tree
         ancestor = node1
         while(True):
             if (ancestor.isAncestor(node2)):
@@ -267,7 +268,8 @@ class Node(object):
         combined = []
         for value in values:
             (node, scores) = value
-            score = scores[0] * scores[1]
+            # airthimetic avg. Could use harmonic avg
+            score = (scores[0] + scores[1]) / 2
             combined.append((node.value, score))
 
         return combined
