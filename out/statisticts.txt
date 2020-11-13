@@ -1,5 +1,0 @@
-attempt > 1
-success > 1
-no_data > 0
-not_found > 0
-bad_format > 0
