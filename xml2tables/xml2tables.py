@@ -108,6 +108,10 @@ def isEventComplete(evento):
     return evento.find('DADOS-BASICOS-DO-TRABALHO').get('NATUREZA') == 'COMPLETO'
 
 
+def fileIsEmpty(path):
+    return os.stat(path).st_size == 0
+
+
 def scrapBook(livro):
     titulo = getKey(
         livro,
@@ -170,7 +174,7 @@ def scrapResearcher(root, idLattes, dicPesquisadores):
     nomeEmCitacoes = getCitationNames(root)
     (primeiraGA, primeiraA) = getAreas()
 
-    dicPesquisadores[idLattes] = f'\t{nome}\t{nomeEmCitacoes}\t{primeiraGA}\t{primeiraA}'
+    dicPesquisadores[idLattes] = f'{nome}\t{nomeEmCitacoes}\t{primeiraGA}\t{primeiraA}'
 
 
 def outputResearchers(path, header, dic):
@@ -185,29 +189,27 @@ def outputPublications(path, header, dic):
     outputToFile(path, header, dic, getter)
 
 
+def printStatistics(total, success, not_found, bad_format, no_data, key):
+    header = f'id\ttotal\tsuccess\tnot_found\tbad_format\tno_data'
+
+    def buildLine(key, value):
+        return value
+
+    dic = {
+        'data': f'{key}\t{total}\t{success}\t{not_found}\t{bad_format}\t{no_data}\n'
+    }
+    outputToFile('../out/statisticts.tsv', header, dic, buildLine)
+
+
 def outputToFile(path, header, dic, buildLine):
-    f = open(path, 'w')
-    if (header != ""):
+    f = open(path, 'a')
+    if (header != "" and fileIsEmpty(path)):
         f.write(f"{header}\n")
 
     for (key, value) in dic.items():
         f.write(buildLine(key, value))
 
     f.close()
-
-
-def printStatistics(attempt, success, not_found, bad_format, no_data):
-    def buildLine(key, value):
-        return f'{key} > {value}\n'
-
-    dic = {
-        'attempt': attempt,
-        'success': success,
-        'no_data': no_data,
-        'not_found': not_found,
-        'bad_format': bad_format,
-    }
-    outputToFile('../out/statisticts.txt', '', dic, buildLine)
 
 
 if __name__ == "__main__":
@@ -223,7 +225,7 @@ if __name__ == "__main__":
 
     dicPesquisadores = dict([])
 
-    attempt = 0
+    attempts = 0
     success = 0
     no_data = 0
     not_found = 0
@@ -233,15 +235,15 @@ if __name__ == "__main__":
         idLattes = linha.strip()
         if idLattes == "":
             continue
-        print("PROCESSANDO >>->>", idLattes)
-        attempt = attempt + 1
+        attempts = attempts + 1
 
         p_periodicos[idLattes] = list()
         p_eventos[idLattes] = list()
         p_livros[idLattes] = list()
         p_cap_livros[idLattes] = list()
 
-        xml = xmlDir + idLattes[-1] + "/" + idLattes + ".zip"
+        lastIdLattesDigit = idLattes[-1]
+        xml = xmlDir + lastIdLattesDigit + "/" + idLattes + ".zip"
         if not os.path.isfile(xml):
             not_found = not_found + 1
             continue
@@ -298,6 +300,13 @@ if __name__ == "__main__":
         p_cap_livros
     )
 
-    printStatistics(attempt, success, not_found, bad_format, no_data)
+    printStatistics(
+        attempts,
+        success,
+        not_found,
+        bad_format,
+        no_data,
+        lastIdLattesDigit
+    )
 
     print("\ndone!")
