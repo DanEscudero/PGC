@@ -300,13 +300,13 @@ if __name__ == "__main__":
         p_cap_livros
     )
 
-    printStatistics(
-        attempts,
-        success,
-        not_found,
-        bad_format,
-        no_data,
-        lastIdLattesDigit
-    )
+    # printStatistics(
+    #     attempts,
+    #     success,
+    #     not_found,
+    #     bad_format,
+    #     no_data,
+    #     lastIdLattesDigit
+    # )
 
     print("\ndone!")
