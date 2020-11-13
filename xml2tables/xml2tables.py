@@ -98,7 +98,7 @@ def procurarPrimeiro(vetor):
     return ""
 
 
-def getKey(pub, key, finder='DADOS-BASICOS-DO-ARTIGO'):
+def getKey(pub, key, finder):
     return strValidar(
         pub.find(finder), key
     ).replace("\n", " ").replace("\t", " ").strip()
@@ -150,19 +150,19 @@ def scrapEvent(evento):
     return (titulo, autores)
 
 
-def scrapPublications(root, P_periodicos, P_eventos, P_livros, P_cap_livros):
+def scrapPublications(root, p_periodicos, p_eventos, p_livros, p_cap_livros):
     for jornal in root.iter('ARTIGO-PUBLICADO'):
-        P_periodicos[idLattes].append(scrapJournal(jornal))
+        p_periodicos[idLattes].append(scrapJournal(jornal))
 
     for evento in root.iter('TRABALHO-EM-EVENTOS'):
         if isEventComplete(evento):
-            P_eventos[idLattes].append(scrapEvent(evento))
+            p_eventos[idLattes].append(scrapEvent(evento))
 
     for livro in root.iter('LIVRO-PUBLICADO-OU-ORGANIZADO'):
-        P_livros[idLattes].append(scrapBook(livro))
+        p_livros[idLattes].append(scrapBook(livro))
 
     for capitulo in root.iter('CAPITULO-DE-LIVRO-PUBLICADO'):
-        P_cap_livros[idLattes].append(scrapChapter(capitulo))
+        p_cap_livros[idLattes].append(scrapChapter(capitulo))
 
 
 def scrapResearcher(root, idLattes, dicPesquisadores):
@@ -174,36 +174,40 @@ def scrapResearcher(root, idLattes, dicPesquisadores):
 
 
 def outputResearchers(path, header, dic):
-    def getter(idLattes, record):
+    def buildLine(idLattes, record):
         return f"{idLattes}\t{record}\n"
-    outputToFile(path, header, dic, getter)
+    outputToFile(path, header, dic, buildLine)
 
 
 def outputPublications(path, header, dic):
     def getter(idLattes, record):
-        return f"{idLattes}\t" + "\t".join(record) + "\n"
+        return "\n".join(map(lambda r: f'{idLattes}\t{r}', ['\t'.join(r) for r in record]))
     outputToFile(path, header, dic, getter)
 
 
-def outputToFile(path, header, dic, getter):
+def outputToFile(path, header, dic, buildLine):
     f = open(path, 'w')
-    f.write(f"{header}\n")
-    for (idLattes, record) in dic.items():
-        line = getter(idLattes, record)
-        f.write(line)
+    if (header != ""):
+        f.write(f"{header}\n")
+
+    for (key, value) in dic.items():
+        f.write(buildLine(key, value))
+
     f.close()
 
 
 def printStatistics(attempt, success, not_found, bad_format, no_data):
-    counts = "attempt > " + str(attempt) + "\n"
-    counts = counts + 'success > ' + str(success) + '\n'
-    counts = counts + 'not_found > ' + str(not_found) + '\n'
-    counts = counts + 'bad_format > ' + str(bad_format) + '\n'
-    counts = counts + 'no_data > ' + str(no_data) + '\n'
+    def buildLine(key, value):
+        return f'{key} > {value}\n'
 
-    f = open('../out/statisticts.txt', 'a')
-    f.write(counts)
-    f.close()
+    dic = {
+        'attempt': attempt,
+        'success': success,
+        'no_data': no_data,
+        'not_found': not_found,
+        'bad_format': bad_format,
+    }
+    outputToFile('../out/statisticts.txt', '', dic, buildLine)
 
 
 if __name__ == "__main__":
@@ -212,10 +216,10 @@ if __name__ == "__main__":
     prefixo = '../out/listagens/'
 
     Pesquisadores = list([])
-    P_periodicos = dict()
-    P_eventos = dict()
-    P_livros = dict()
-    P_cap_livros = dict()
+    p_periodicos = dict()
+    p_eventos = dict()
+    p_livros = dict()
+    p_cap_livros = dict()
 
     dicPesquisadores = dict([])
 
@@ -232,16 +236,14 @@ if __name__ == "__main__":
         print("PROCESSANDO >>->>", idLattes)
         attempt = attempt + 1
 
-        P_periodicos[idLattes] = list()
-        P_eventos[idLattes] = list()
-        P_livros[idLattes] = list()
-        P_cap_livros[idLattes] = list()
+        p_periodicos[idLattes] = list()
+        p_eventos[idLattes] = list()
+        p_livros[idLattes] = list()
+        p_cap_livros[idLattes] = list()
 
         xml = xmlDir + idLattes[-1] + "/" + idLattes + ".zip"
         if not os.path.isfile(xml):
             not_found = not_found + 1
-            # dicPesquisadores[idLattes] = f"CV-COM-PROBLEMA-NO-SEU-FORMATO/CONTEÚDO"
-            print("[ERRO] CV nao existe no diretorio base:", idLattes)
             continue
         try:
             with zipfile.ZipFile(xml) as myzip:
@@ -249,14 +251,10 @@ if __name__ == "__main__":
                 root = ET.fromstring(cv)
         except:
             bad_format = bad_format + 1
-            # dicPesquisadores[idLattes] = f"CV-COM-PROBLEMA-NO-SEU-FORMATO/CONTEÚDO"
-            print("[ERRO] CV com problema com no seu formato/conteúdo:", idLattes)
             continue
 
         if root.get('DATA-ATUALIZACAO') == None:
             no_data = no_data + 1
-            # dicPesquisadores[idLattes] = f"CV-COM-PROBLEMA-NO-SEU-FORMATO/CONTEÚDO"
-            print("[ERRO] CV desconsiderado por nao ter dados:", idLattes)
         else:
             success = success + 1
 
@@ -268,38 +266,37 @@ if __name__ == "__main__":
 
             scrapPublications(
                 root,
-                P_periodicos,
-                P_eventos,
-                P_livros,
-                P_cap_livros
+                p_periodicos,
+                p_eventos,
+                p_livros,
+                p_cap_livros
             )
 
     outputResearchers(
-        prefixo + "Info-pesquisadores.csv",
+        prefixo + "Info-pesquisadores.tsv",
         "id_lattes\tnome\tnome_citacoes\tprimeira_ga\tprimeira_a",
         dicPesquisadores
     )
-
-    # outputPublications(
-    #     prefixo + "Publicacoes-periodicos.csv",
-    #     "id_lattes\ttitulo\tautores",
-    #     P_periodicos
-    # )
-    # outputPublications(
-    #     prefixo + "Publicacoes-eventos.csv",
-    #     "id_lattes\ttitulo\tautores",
-    #     P_eventos
-    # )
-    # outputPublications(
-    #     prefixo + "Publicacoes-livros.csv",
-    #     "id_lattes\ttitulo\tautores",
-    #     P_livros
-    # )
-    # outputPublications(
-    #     prefixo + "Publicacoes-cap_livros.csv",
-    #     "id_lattes\ttitulo\ttitulo_livro\tautores",
-    #     P_cap_livros
-    # )
+    outputPublications(
+        prefixo + "Publicacoes-periodicos.tsv",
+        "id_lattes\ttitulo\tautores",
+        p_periodicos
+    )
+    outputPublications(
+        prefixo + "Publicacoes-eventos.tsv",
+        "id_lattes\ttitulo\tautores",
+        p_eventos
+    )
+    outputPublications(
+        prefixo + "Publicacoes-livros.tsv",
+        "id_lattes\ttitulo\tautores",
+        p_livros
+    )
+    outputPublications(
+        prefixo + "Publicacoes-cap_livros.tsv",
+        "id_lattes\ttitulo\ttitulo_livro\tautores",
+        p_cap_livros
+    )
 
     printStatistics(attempt, success, not_found, bad_format, no_data)
 
