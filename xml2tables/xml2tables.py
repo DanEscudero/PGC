@@ -185,7 +185,13 @@ def outputResearchers(path, header, dic):
 
 def outputPublications(path, header, dic):
     def getter(idLattes, record):
-        return "\n".join(map(lambda r: f'{idLattes}\t{r}', ['\t'.join(r) for r in record]))
+        line = "\n".join(
+            map(lambda r: f'{idLattes}\t{r}', ['\t'.join(r) for r in record])
+        )
+
+        if len(record):
+            line = line + "\n"
+        return line
     outputToFile(path, header, dic, getter)
 
 
