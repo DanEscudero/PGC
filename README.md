@@ -26,19 +26,15 @@ Busca pelo `Termo de Busca` dentro da árvore.
 
     python3 extract_ids.py
 
-Extrai IDs dos doutores e escreve nos arquivos `/ids-doutores/idsN.txt` (N entre 0 e 9). **N** se refere ao último dígito ID Lattes do pesquisador.
+Extrai IDs dos doutores e escreve nos arquivos `/ids-doutores/ids{N}.txt` (N entre 0 e 9). **N** se refere ao último dígito ID Lattes do pesquisador.
 
 ### Leitura de informações
 
     python3 xml2tables.py <listaIDS>
 
-A partir das informações contidas em `BD-Lattes---nomes-e-caracteristicas---doutores.csv`, lista informações dos pesquisadores contidos em `listaIDS`. Escreve diversos arquivos de output.
+Lista as informações de pesquisadores e informações para ./base-cv/
 
-### Extração de informações gerais sobre doutores
-
-    python3 lattes_scrap.py
-
-Gera informações quantitativas a partir do arquivo `BD-Lattes---nomes-e-caracteristicas---doutores.csv`
+As informações estatísticas sobre a base são extraídas para ./statistics.tsv
 
 ---
 

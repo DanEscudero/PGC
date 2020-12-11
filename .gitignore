@@ -1,4 +1,7 @@
 /ENV
 */__pycache__
 /tar
-/out/listagens
+/out/base-cv
+/out/extraction
+/out/extraction-full
+/out/extraction-short
