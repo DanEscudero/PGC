@@ -1,5 +1,4 @@
 import sys
-from treeBuilder import shouldBuildTree, getFilePath
 from util import parse_args
 from Node import Node
 
@@ -8,10 +7,10 @@ def main():
     state = parse_args(sys.argv)
     (queryParameter, _, _, _) = state
 
-    if (shouldBuildTree(state)):
+    if (Node.shouldBuildTree(state)):
         raise Exception('Tree should be built first!')
 
-    t = Node.fromFile(getFilePath(state))
+    t = Node.fromFile(Node.getFilePath(state))
 
     print('Tree:   ', queryParameter)
     print('Height: ', t.height)

@@ -221,7 +221,7 @@ def outputToFile(path, header, dic, buildLine):
 if __name__ == "__main__":
     inFilePessoas = sys.argv[1]  # "listaIDs.txt.mini"
 
-    prefixo = '../out/listagens/'
+    prefixo = '../out/base-cv/'
 
     Pesquisadores = list([])
     p_periodicos = dict()

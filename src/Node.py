@@ -348,8 +348,12 @@ class Node(object):
 
     @staticmethod
     def getFilePath(state):
+        return '../out/' + Node.getFileName(state)
+
+    @staticmethod
+    def getFileName(state):
         (queryParameter, _, queryLevel, queryCMLimit) = state
-        return '../out/' + queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
+        return queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
 
     @staticmethod
     def shouldBuildTree(state):
