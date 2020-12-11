@@ -6,7 +6,7 @@ from util import cleanTerm, list_subcategories
 
 class Node(object):
     SEPARATOR = ' $sep$ '
-    SIMILARITY_LIMIT = 0.67
+    SIMILARITY_LIMIT = 0.8
 
     def __init__(self, value, seq=0, parent=None):
         self.value = value
@@ -351,9 +351,12 @@ class Node(object):
         return '../out/' + Node.getFileName(state)
 
     @staticmethod
-    def getFileName(state):
-        (queryParameter, _, queryLevel, queryCMLimit) = state
-        return queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
+    def getFileName(state, includeSpecific=False):
+        (queryParameter, specificTerm, queryLevel, queryCMLimit) = state
+        if (not includeSpecific):
+            return queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)
+        else:
+            return queryParameter + '_' + specificTerm + '_' + str(queryLevel) + '_' + str(queryCMLimit)
 
     @staticmethod
     def shouldBuildTree(state):

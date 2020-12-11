@@ -71,7 +71,7 @@ def main():
     dictNodes = mapTermsToDict(goodNodes)
     sortedNodes = sumarizeAndOrderNodes(dictNodes)
 
-    filepath = '../out/extraction-full/' + Node.getFileName(state)
+    filepath = '../out/extraction-full/' + Node.getFileName(state, True)
     fp = open(filepath, 'w')
     for item in sortedNodes:
         (term, scores) = item
@@ -81,7 +81,7 @@ def main():
 
     fp.close()
 
-    filepath = '../out/extraction-short/' + Node.getFileName(state)
+    filepath = '../out/extraction-short/' + Node.getFileName(state, True)
     fp = open(filepath, 'w')
     for item in sortedNodes:
         (term, scores) = item
