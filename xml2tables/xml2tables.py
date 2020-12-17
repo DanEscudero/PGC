@@ -139,7 +139,7 @@ def scrapChapter(capitulo):
 
     autores = agrupaCoautores(capitulo.findall('AUTORES'))
 
-    return (titulo, tituloLivro, autores)
+    return (tituloLivro, autores)
 
 
 def scrapJournal(jornal):
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     )
     outputPublications(
         prefixo + "Publicacoes-cap_livros.tsv",
-        "id_lattes\ttitulo\ttitulo_livro\tautores",
+        "id_lattes\ttitulo_livro\tautores",
         p_cap_livros
     )
 
