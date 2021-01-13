@@ -37,6 +37,18 @@ Lista as informações de pesquisadores e informações para ./base-cv/
 As informações estatísticas sobre a base são extraídas para ./statistics.tsv
 
 ---
+### Ver informações sobre os currículos do Lattes
+
+    python3 lattes_scrap.py
+
+Lista breves informações estatísticas sobre a base do lattes.
+(O código deve ser modificado para especificar a área dos pesquisadores desejados)
+
+### Identificar especialistas
+
+    python identifySpecialists.py <Grande Área> <Termo de Busca> <Nível> <Limite=max>
+
+Identifica e faz um ranqueamento dos especialistas
 
 ## Para desenvolver:
 

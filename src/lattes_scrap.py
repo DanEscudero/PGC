@@ -65,9 +65,6 @@ if __name__ == '__main__':
 
     total_pesquisadores = len(info)
 
-    print(all_areas)
-    exit()
-
     print('total_pesquisadores', total_pesquisadores)
     print('total_publicacoes  ', total_publicacoes)
 

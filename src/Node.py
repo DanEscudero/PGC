@@ -318,7 +318,7 @@ class Node(object):
 
     @staticmethod
     def getLinesFromFile(filepath):
-        f = open(filepath)
+        f = open(filepath, 'w')
         lines = list(map(lambda x: x[:-1], f.readlines()))  # remove '\n'
         f.close()
 
@@ -348,10 +348,10 @@ class Node(object):
 
     @staticmethod
     def getFilePath(state):
-        return '../out/' + Node.getFileName(state)
+        return '../out/' + Node.getFileName(state, False)
 
     @staticmethod
-    def getFileName(state, includeSpecific=False):
+    def getFileName(state, includeSpecific=True):
         (queryParameter, specificTerm, queryLevel, queryCMLimit) = state
         if (not includeSpecific):
             return queryParameter + '_' + str(queryLevel) + '_' + str(queryCMLimit)

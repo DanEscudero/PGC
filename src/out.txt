@@ -1,2 +1,0 @@
-id_lattes	titulo	autores	terms
-12115884315181	Otimização Matemática	A2 A2 A2	[('otimização matemática', 'otimização matemática')]

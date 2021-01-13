@@ -1,12 +1,13 @@
 import sys
 import math
+import collections
 import pandas as pd
 from Node import Node
 from util import parse_args
 from google_trans_new import google_translator
 
 def getRelevantTerms(state):
-    filepath = '../out/extraction-short/' + Node.getFileName(state, True)
+    filepath = '../out/extraction-short/' + Node.getFileName(state)
 
     fp = open(filepath)
     lines = fp.readlines()
@@ -49,14 +50,21 @@ def getRelevantPublicationsFrom(path, relevantTerms):
 def getRelevantPublications(relevantTerms):
     relevant = pd.concat([
         getRelevantPublicationsFrom('../out/base-cv/Publicacoes-cap_livros.tsv', relevantTerms),
-        getRelevantPublicationsFrom('../out/base-cv/Publicacoes-livros.tsv', relevantTerms),
-        getRelevantPublicationsFrom('../out/base-cv/Publicacoes-periodicos.tsv', relevantTerms),
-        getRelevantPublicationsFrom('../out/base-cv/Publicacoes-eventos.tsv', relevantTerms)
+        # getRelevantPublicationsFrom('../out/base-cv/Publicacoes-livros.tsv', relevantTerms),
+        # getRelevantPublicationsFrom('../out/base-cv/Publicacoes-periodicos.tsv', relevantTerms),
+        # getRelevantPublicationsFrom('../out/base-cv/Publicacoes-eventos.tsv', relevantTerms)
     ])
     
     relevant.reset_index(inplace=True, drop=True)
 
     return relevant
+
+
+def toFile(publications, filepath):
+    f = open(filepath, 'w')
+    for (index, publication) in publications.iterrows():
+        f.write(str(publication.id_lattes) + '\t' + publication.titulo)
+
 
 def main():
     state = parse_args(sys.argv)
@@ -65,9 +73,10 @@ def main():
 
     publications = getRelevantPublications(relevantTerms)
 
-    for (index, publication) in publications.iterrows():
-        print(publication.id_lattes, '\t', publication.titulo)
-    
+    name = Node.getFileName(state)
+    toFile(publications, '../out/specialists/' + name + '.tsv')
+    ids = collections.Counter(list(map(lambda x: x[1].id_lattes, publications.iterrows())))
+    print(ids)
 
 if __name__ == "__main__":
     main()
