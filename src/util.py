@@ -1,8 +1,8 @@
 import json
+import pandas
 import requests
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-
 
 def pp_json(json_thing, sort=True, indents=4):
     if type(json_thing) is str:
@@ -26,14 +26,14 @@ def clear_category_name(name):
         return x[0]
 
 
-def query_subcategories(field, max):
+def query_subcategories(field, cmlimit):
     params = {
         "action": "query",
         "cmtitle": "Category:" + format_field(field),
         "cmtype": "subcat",
         "list": "categorymembers",
         "format": "json",
-        "cmlimit": max
+        "cmlimit": cmlimit
     }
 
     session = requests.Session()
@@ -47,6 +47,10 @@ def cleanTerm(string):
     dirty += ['.', ',', '\'', '!', '?', '-', '(', ')']
     return [(word.lower()) for word in tokens if not word in dirty]
 
+# Computes a - b
+# https://stackoverflow.com/questions/3462143/get-difference-between-two-lists
+def diff_list(a, b):
+    return list(set(temp1) - set(temp2))
 
 def parse_args(argv):
     argv = argv[1:]
