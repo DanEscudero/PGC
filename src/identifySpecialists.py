@@ -1,6 +1,4 @@
-import sys
-import json
-import collections
+import sys, csv, json, collections
 import pandas as pd
 from Node import Node
 from util import parse_args, pp_json
@@ -38,6 +36,7 @@ def getRelevantPublicationsFrom(path, relevantTerms):
         sep='\t',
         header=0,
         names=['id_lattes','titulo','autores'],
+        warn_bad_lines=False,
         error_bad_lines=False,
         engine='python'
     )
@@ -50,9 +49,9 @@ def getRelevantPublicationsFrom(path, relevantTerms):
 def getRelevantPublications(relevantTerms):
     relevant = pd.concat([
         getRelevantPublicationsFrom('../out/base-cv/Publicacoes-cap_livros.tsv', relevantTerms),
-        getRelevantPublicationsFrom('../out/base-cv/Publicacoes-livros.tsv', relevantTerms),
-        getRelevantPublicationsFrom('../out/base-cv/Publicacoes-periodicos.tsv', relevantTerms),
-        getRelevantPublicationsFrom('../out/base-cv/Publicacoes-eventos.tsv', relevantTerms)
+        # getRelevantPublicationsFrom('../out/base-cv/Publicacoes-livros.tsv', relevantTerms),
+        # getRelevantPublicationsFrom('../out/base-cv/Publicacoes-periodicos.tsv', relevantTerms),
+        # getRelevantPublicationsFrom('../out/base-cv/Publicacoes-eventos.tsv', relevantTerms)
     ])
     
     relevant.reset_index(inplace=True, drop=True)
@@ -65,7 +64,7 @@ def toFile(publications, filepath):
     for (index, publication) in publications.iterrows():
         f.write(str(publication.id_lattes) + '\t' + publication.titulo + '\n')
 
-def getSpecialists(counts):
+def getSpecialists(counts, big_area):
     ids = counts.keys()
     researchers_keys = ['id_lattes', 'nome', 'primeira_a']
 
@@ -80,7 +79,7 @@ def getSpecialists(counts):
 
     specialists = researchers[
         (researchers['id_lattes'].isin(ids))
-        & (researchers['primeira_a'] == 'Ciência da Computação')
+        & (researchers['primeira_a'] == big_area)
     ][researchers_keys]
 
     return list(
@@ -98,12 +97,27 @@ def getSpecialists(counts):
 def orderSpecialists(specialists):
     return sorted(specialists, reverse=True, key=lambda x: x['count'])
 
-def jsonToFile(data, name):
-    with open(name, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+def dictToTsvFile(data, name):
+    f = open(name, 'w')
+    output = csv.writer(f)
+
+    output.writerow(data[0].keys())
+    for row in data:
+        output.writerow(row.values())
+
+def translateArea(big_area):
+    f = open('./map.json', 'r')
+    d = json.load(f)
+
+    if (big_area in d):
+        return d[big_area]
+    raise Exception('Invalid big area! Please check map.json to see a list of valid areas.')
 
 def main():
     state = parse_args(sys.argv)
+    big_area = state[0]
+    big_area = translateArea(big_area)
+
     relevantTerms = translateTerms(getRelevantTerms(state))
 
     publications = getRelevantPublications(relevantTerms)
@@ -112,10 +126,13 @@ def main():
 
     lattes_ids = collections.Counter(list(map(lambda x: x[1].id_lattes, publications.iterrows())))
 
-    specialists = orderSpecialists(getSpecialists(lattes_ids))
-    # TODO: rewrite as tsv instead of json
-    jsonToFile(specialists, '../out/specialists/researchers/' + name + '.json')
-    print(specialists)
+    specialists = orderSpecialists(getSpecialists(lattes_ids, big_area))
+
+    dictToTsvFile(specialists, '../out/specialists/researchers/' + name + '.tsv')
+
+    print('Specialists saved to:\n', '../out/specialists/researchers/' + name + '.tsv')
+    print()
+    print('Relevant publications saved to:\n', '../out/specialists/publications/' + name + '.tsv')
 
 
 if __name__ == "__main__":

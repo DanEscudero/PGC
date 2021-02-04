@@ -43,6 +43,27 @@ def sumarizeAndOrderNodes(nodesWithScores):
         reverse=True
     )
 
+def shortOutput(sortedNodes, state):
+    filepath = '../out/extraction-short/' + Node.getFileName(state)
+    print('Short output written to ', filepath)
+    fp = open(filepath, 'w+')
+    for item in sortedNodes:
+        (term, scores) = item
+        fp.write(term + '\n')
+
+    fp.close()
+
+def fullOutput(sortedNodes, state):
+    filepath = '../out/extraction-full/' + Node.getFileName(state)
+    print('Full output written to ', filepath)
+    fp = open(filepath, 'w+')
+    for item in sortedNodes:
+        (term, scores) = item
+        fp.write(term + '\n')
+        for score in scores:
+            fp.write('\t' + str(score) + '\n')
+
+    fp.close()
 
 def main():
     state = parse_args(sys.argv)
@@ -71,23 +92,8 @@ def main():
     dictNodes = mapTermsToDict(goodNodes)
     sortedNodes = sumarizeAndOrderNodes(dictNodes)
 
-    filepath = '../out/extraction-full/' + Node.getFileName(state)
-    fp = open(filepath, 'w')
-    for item in sortedNodes:
-        (term, scores) = item
-        fp.write(term + '\n')
-        for score in scores:
-            fp.write('\t' + str(score) + '\n')
-
-    fp.close()
-
-    filepath = '../out/extraction-short/' + Node.getFileName(state)
-    fp = open(filepath, 'w')
-    for item in sortedNodes:
-        (term, scores) = item
-        fp.write(term + '\n')
-
-    fp.close()
+    fullOutput(sortedNodes, state)
+    shortOutput(sortedNodes, state)
 
 
 if __name__ == "__main__":

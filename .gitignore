@@ -1,7 +1,5 @@
 /ENV
 */__pycache__
 /tar
-/out/base-cv
-/out/extraction
-/out/extraction-full
-/out/extraction-short
+out/*
+/out/*

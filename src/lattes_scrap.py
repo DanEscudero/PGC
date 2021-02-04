@@ -1,8 +1,9 @@
 import csv
+import sys
 
 if __name__ == '__main__':
-    path = '../../tar/BD-Lattes---nomes-e-caracteristicas---doutores.csv'
-    watching_areas = ['neuro-ciência']
+    path = '../out/base-cv/Info-pesquisadores.tsv'
+    watching_area = sys.argv[1]
 
     with open(path) as tsvfile:
         tsvreader = csv.reader(tsvfile, delimiter="\t")
@@ -41,9 +42,9 @@ if __name__ == '__main__':
                 full_d[keys[j]] = item
                 j = j + 1
 
-            all_areas.add(full_d['Primeira-Área'])
+            all_areas.add(full_d['primeira_a'])
 
-            if (full_d['Primeira-Área'].lower() in watching_areas):
+            if (full_d['primeira_a'].lower() == watching_area):
                 # add required keys
                 for required_key in required_keys:
                     d[required_key] = full_d[required_key]
@@ -65,6 +66,7 @@ if __name__ == '__main__':
 
     total_pesquisadores = len(info)
 
+    print('Área               ', watching_area)
     print('total_pesquisadores', total_pesquisadores)
     print('total_publicacoes  ', total_publicacoes)
 

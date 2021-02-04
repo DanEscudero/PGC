@@ -12,18 +12,9 @@ def main():
 
     t = Node.fromFile(Node.getFilePath(state))
 
-    print('Tree:   ', queryParameter)
-    print('Height: ', t.height)
-
-    # total = t.recursiveCount()
-    # t_max = t.maxChildren
+    total = t.recursiveCount()
+    t_max = t.maxChildren
     t_min = t.minChildren
-    print(t_min)
-
-    # print('T:      ', total)
-    # print('T_max:  ', {"count": t_max['count'], "node": t_max['node'].value})
-    # print('T_min:  ', {
-    #       "count": t_min['count'], "node": t_min['node'].value, "height": t_min.height})
 
     totals = []
     for i in range(0, t.height + 1):
@@ -35,6 +26,7 @@ def main():
 
     n_children = 0
     n_parents = 0
+    avgs = []
 
     for i in range(0, len(totals)):
         if (i != 0):
@@ -45,14 +37,23 @@ def main():
 
         if (i+1 < len(totals)):
             avg = totals[i+1] / totals[i]
-            print('average ' + str(i+1) + ':',  "{:.1f}".format(avg))
+            avgs.append("{:.1f}".format(avg))
 
-    # t_avg = n_children / n_parents
-    # print('T:      ', total)
-    # print('T_min:  ', t_min['count'])
-    # print('T_avg:  ',   "{:.1f}".format(t_avg))
-    # print('T_max:  ', t_max['count'])
-    # print(totals)
+    t_avg = n_children / n_parents
+
+    print('\n === Tree Statistics: === ')
+    print('Tree:        ', queryParameter)
+    print('Height:      ', t.height)
+
+    print('\n === Nodes Statistics: === ')
+    print('Total Nodes: ', total)
+    print('Min children:', t_min['count'])
+    print('Avg Children:',"{:.1f}".format(t_avg))
+    print('Max Children:', t_max['count'])
+
+    print('\n === Statistics per level: ===')
+    print('Avg nodes per level:', avgs)
+    print('Nodes per level    :', totals)
 
 
 if __name__ == "__main__":

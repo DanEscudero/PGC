@@ -318,7 +318,7 @@ class Node(object):
 
     @staticmethod
     def getLinesFromFile(filepath):
-        f = open(filepath, 'w')
+        f = open(filepath, 'r')
         lines = list(map(lambda x: x[:-1], f.readlines()))  # remove '\n'
         f.close()
 
@@ -348,7 +348,7 @@ class Node(object):
 
     @staticmethod
     def getFilePath(state):
-        return '../out/' + Node.getFileName(state, False)
+        return '../out/tree/' + Node.getFileName(state, False)
 
     @staticmethod
     def getFileName(state, includeSpecific=True):
@@ -379,16 +379,14 @@ class Node(object):
         filepath = Node.getFilePath(state)
         (queryParameter, _, queryLevel, queryCMLimit) = state
 
+
         if (Node.shouldBuildTree(state)):
-            print('Starting build tree...')
             global seq
             seq = 0
             t = Node(queryParameter)
             Node.buildTree(t, queryLevel, queryCMLimit)
-            t.dumpToFile(open(filepath, 'w'))
+            t.dumpToFile(open(filepath, 'w+'))
         else:
-            print('Reading tree from file...')
             t = Node.fromFile(filepath)
 
-        print('Tree built!')
         return t
