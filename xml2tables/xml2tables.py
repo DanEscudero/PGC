@@ -195,18 +195,6 @@ def outputPublications(path, header, dic):
     outputToFile(path, header, dic, getter)
 
 
-def printStatistics(total, success, not_found, bad_format, no_data, key):
-    header = f'id\ttotal\tsuccess\tnot_found\tbad_format\tno_data'
-
-    def buildLine(key, value):
-        return value
-
-    dic = {
-        'data': f'{key}\t{total}\t{success}\t{not_found}\t{bad_format}\t{no_data}\n'
-    }
-    outputToFile('../out/statisticts.tsv', header, dic, buildLine)
-
-
 def outputToFile(path, header, dic, buildLine):
     f = open(path, 'a')
     if (header != "" and fileIsEmpty(path)):
@@ -219,7 +207,7 @@ def outputToFile(path, header, dic, buildLine):
 
 
 if __name__ == "__main__":
-    inFilePessoas = sys.argv[1]  # "listaIDs.txt.mini"
+    inFilePessoas = sys.argv[1]
 
     prefixo = '../out/base-cv/'
 
@@ -305,14 +293,5 @@ if __name__ == "__main__":
         "id_lattes\ttitulo_livro\tautores",
         p_cap_livros
     )
-
-    # printStatistics(
-    #     attempts,
-    #     success,
-    #     not_found,
-    #     bad_format,
-    #     no_data,
-    #     lastIdLattesDigit
-    # )
 
     print("\ndone!")
