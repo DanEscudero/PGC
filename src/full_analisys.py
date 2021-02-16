@@ -8,7 +8,7 @@ def main():
 		raise
 		exit()
 
-	args = str(state[0]) + ' ' + str(state[1]) + ' ' + str(state[2]) + ' ' + str(state[3])
+	args = '"' + str(state[0]) + '" "' + str(state[1]) + '" ' + str(state[2]) + ' ' + str(state[3])
 
 	print('Building tree...')
 	os.system('python3 treeBuilder.py ' + args)
